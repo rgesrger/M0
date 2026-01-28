@@ -1,0 +1,10 @@
+fry
+apple
+banana
+apple
+cat
+banana
+apple
+sheaf
+dog
+banana
