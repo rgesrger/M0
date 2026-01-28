@@ -1,0 +1,1 @@
+algorithm | 10 | http://code.com/algo

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Links</title>
+</head>
+<body>
+  <p>Root link: <a href="/robots.txt">Server Robots</a></p>
+  <p>Missing href: <a>Broken link</a></p>
+</body>
+</html>

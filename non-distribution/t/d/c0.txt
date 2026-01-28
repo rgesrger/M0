@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to CS1380 simple links</h1>
+        <p>Check out <a href="level_2a/index.html">Some stuff</a>.</p>
+        
+        <p>Check out <a href="https://cs.brown.edu/people/">Faculty Page</a>.</p>
+    </div>
+</body>
+</html>
