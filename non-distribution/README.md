@@ -43,6 +43,16 @@ The code inside `non-distribution` is organized as follows:
 To submit your solution, run `./scripts/submit.sh` from the root of the stencil. This will create a
 `submission.zip` file which you can upload to the autograder.
 
+# M0: Setup & Centralized Computing
+
+> Add your contact information below and in `package.json`.
+
+* name: Daniel Xiong
+
+* email: daniel_xiong@brown.edu
+
+* cslogin: dxiong2
+
 ## Summary
 This is an implementation of a crawler, which at a high level uses an engine.sh script that runs the cralwer and indexer. The crawler calls getURL.js and getText.js, where getURL.js extracts all of the URLs from a given web page, and getText gets the text from html.
 
@@ -63,3 +73,5 @@ To characterize correctness, we developed tests that:
 5. Tested to see if query worked if the word did not appear
 6. Tested to see if query worked if there were only stopwords
 7. Tested to see if merge worked if there was only 1 file
+
+*Performance*: The throughput of various subsystems is described in the `"throughput"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.

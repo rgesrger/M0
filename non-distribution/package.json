@@ -2,9 +2,9 @@
   "name": "cs1380:m0",
   "version": "1.0.0",
   "author": {
-    "name": "<first last?>",
-    "email": "<email@brown.edu?>",
-    "cslogin": "<cslogin?>"
+    "name": "Daniel Xiong",
+    "email": "daniel_xiong@brown.edu",
+    "cslogin": "dxiong2"
   },
   "description": "A set of components for cs1380's search engine.",
   "dependencies": {
@@ -29,15 +29,15 @@
   "report": [
     {
       "milestone": "M0",
-      "hours": 999,
-      "loc": 999,
+      "hours": 9,
+      "loc": 220,
       "dev": {
         "cpu-no": 999,
         "mem-gb": 999,
         "ssd-gb": 999
       },
       "throughput": {
-        "dev": [],
+        "dev": [693, 1254, 274],
         "aws": [],
         "gs": []
       },
