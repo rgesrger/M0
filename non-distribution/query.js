@@ -33,6 +33,9 @@ function query(indexFile, args) {
   let cleaned = '';
   const input = args.join(' ');
   cleaned = execSync(`echo "${input}" | ./c/process.sh`, {encoding: 'utf-8'});
+  if (!cleaned.trim()) {
+    return;
+  }
   const searchwords = execSync(`echo "${cleaned}" | ./c/stem.js`, {encoding: 'utf-8'}).trim();
   const rl = readline.createInterface({
     input: fs.createReadStream(indexFile),

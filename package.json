@@ -26,10 +26,30 @@
     "@brown-ds/distribution": "latest"
   },
   "report": [
+        {
+      "milestone": "M0",
+      "hours": 8,
+      "jsloc": 150,
+      "loc": 50,
+      "dev": {
+        "cpu-no": 999,
+        "mem-gb": 999,
+        "ssd-gb": 999
+      },
+      "throughput": {
+        "dev": [],
+        "aws": [0.06]
+      },
+      "latency": {
+        "dev": [],
+        "aws": [14738.489]
+      },
+      "dloc": -99
+    },
     {
       "milestone": "M1",
-      "hours": 999,
-      "loc": 999,
+      "hours": 8,
+      "loc": 150,
       "dev": {
         "cpu-no": 999,
         "mem-gb": 999,

@@ -42,3 +42,24 @@ The code inside `non-distribution` is organized as follows:
 
 To submit your solution, run `./scripts/submit.sh` from the root of the stencil. This will create a
 `submission.zip` file which you can upload to the autograder.
+
+## Summary
+This is an implementation of a crawler, which at a high level uses an engine.sh script that runs the cralwer and indexer. The crawler calls getURL.js and getText.js, where getURL.js extracts all of the URLs from a given web page, and getText gets the text from html.
+
+After we get the URLs we process the text in process.sh, which cleans the input by making
+sure we only have lowercase characters, have characters in ASCII, etc. We then stem the words
+which makes use of Porter Stemmer. We then merge the output by creating a dictionary for the global term, and corresponding frequencies in URLs and merging the local dictionary with 
+the global one. After that, we add them all into a global index.
+
+The query step involves returning lines from the global index that include the term we are querying (the term we are querying also gets processed and stemmed).
+
+The most challenging aspect was figuring out how to write tests and run them.
+
+To characterize correctness, we developed tests that:
+1. Checked for how merge.js worked with empty files
+2. Checked if getURLs could get the correct URLs and ignore broken ones (2 tests for this)
+3. Tested proper nouns for stem
+4. Tested to see if all stopping words provided correct output for process
+5. Tested to see if query worked if the word did not appear
+6. Tested to see if query worked if there were only stopwords
+7. Tested to see if merge worked if there was only 1 file
