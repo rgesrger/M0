@@ -75,3 +75,6 @@ To characterize correctness, we developed tests that:
 7. Tested to see if merge worked if there was only 1 file
 
 *Performance*: The throughput of various subsystems is described in the `"throughput"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
+
+Predicted LOC:
+Around 500 since the core logic of the engine is already written. Most of the work seems to be coordination between different nodes, so I believe that there should not be too much more you would have to implement.

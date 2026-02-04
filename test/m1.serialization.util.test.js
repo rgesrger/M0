@@ -104,6 +104,7 @@ test('(2 pts) serializeError', () => {
 test('(2 pts) serializeDate', () => {
   const date = new Date();
   const serialized = util.serialize(date);
+  console.log('serialized date', serialized);
   const deserialized = util.deserialize(serialized);
   expect(deserialized.getTime()).toEqual(date.getTime());
 });

@@ -36,7 +36,7 @@ done
 
 if DIFF_PERCENT=$DIFF_PERCENT t/gi-diff.js <(sort d/global-index.txt) <(sort "$T_FOLDER"/d/n4.txt) >&2;
 then
-    echo "$0 success"
+    echo "$0 success 2"
     exit 0
 else
     echo "$0 failure"

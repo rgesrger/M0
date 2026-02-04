@@ -11,7 +11,6 @@ DIFF=${DIFF:-diff}
 
 url="https://test.com"
 
-
 if $DIFF <(cat "$T_FOLDER"/d/invertsrc.txt | c/invert.sh $url | sed 's/[[:space:]]//g' | sort) <(cat "$T_FOLDER"/d/inverttgt.txt | sed 's/[[:space:]]//g' | sort) >&2;
 then
     echo "$0 success: inverted indices are identical"

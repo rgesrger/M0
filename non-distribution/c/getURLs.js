@@ -35,7 +35,6 @@ rl.on('close', () => {
   const hrefs = Array.from(anchors).map((a) => a.href);
   hrefs.forEach((url) => console.log(url));
 
-
   // 3. Parse HTML using jsdom
 
   // 4. Find all URLs:
