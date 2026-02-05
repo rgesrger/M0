@@ -20,7 +20,7 @@ function serialize(object) {
     case 'function':
       return `{"type":"Function","value":"${object.toString()}"}`;
     case 'object':
-      let arr = [];
+      const arr = [];
       let objtype = 'object';
 
       // handling for Errors
