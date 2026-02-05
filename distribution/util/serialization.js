@@ -5,7 +5,6 @@
  * @returns {string}
  */
 function serialize(object) {
-  console.log('my serial')
   if (object === null ) {
     return '{"type":"null","value":""}';
   }
