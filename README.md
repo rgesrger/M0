@@ -124,5 +124,23 @@ distribution.node.start(() => {
 ```
 
 # Results and Reflections
+# M1: Serialization / Deserialization
 
-> ...
+
+## Summary
+The implementation of serialization involves first providing serialization of primitive types through using toString and Stringify. More complex types of objects were handled by recursively calling serialize on each of the values in the object, which eventually reaches the base case of primitive types. Deserialization follows a very similar approach.
+
+My implementation comprises 2 software components, totaling around 90 lines of code. Key challenges included figuring out how to serialize/deserialize more complex objects. This problem was solved by recursively calling serialize/deserialize on each of the values in the object. Another challenge was figuring out what information I could extract from the constructor of a lot of the objects such as functions, array, and errors. I solved this problem by searching online and on the documentation of related objects. In one scenario I found eval() to be easier to use than the Function constructor.
+
+
+## Correctness & Performance Characterization
+
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness*: I wrote 6 tests; these tests take 0.71 ms to execute (only for the ones where I tested the time on so actually 3 of them). This includes strings with quotations marks inside of them, basic objects, objects with empty arrays, basic primitives, and infinity.
+
+
+*Performance*: The latency of various subsystems is described in the `"latency"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
+
