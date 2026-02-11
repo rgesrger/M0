@@ -72,48 +72,48 @@ test('(1 pts) student test', (done) => {
 }, 100000);
 
 // test that I ran here for convenience but commented out when submitting
-test('additional latency test (I wrote it here for convenience)', (done) =>{
-  console.log("custom test run");
-  let n_count = 0;
-  const addOne = () => ++n_count;
-  const node = {ip: '127.0.0.1', port: 9009};
-  distribution.node.start(() => {
-    function cleanup(cb) {
-      if (globalThis.distribution.node.server) globalThis.distribution.node.server.close();
-      distribution.local.comm.send([], {node: node, service: 'status', method: 'stop'}, cb);
-    }
+// test('additional latency test (I wrote it here for convenience)', (done) =>{
+//   console.log("custom test run");
+//   let n_count = 0;
+//   const addOne = () => ++n_count;
+//   const node = {ip: '127.0.0.1', port: 9009};
+//   distribution.node.start(() => {
+//     function cleanup(cb) {
+//       if (globalThis.distribution.node.server) globalThis.distribution.node.server.close();
+//       distribution.local.comm.send([], {node: node, service: 'status', method: 'stop'}, cb);
+//     }
 
-    const rpcService = { 
-      addOne: distribution.util.wire.createRPC(distribution.util.wire.toAsync(addOne)) 
-    };
+//     const rpcService = { 
+//       addOne: distribution.util.wire.createRPC(distribution.util.wire.toAsync(addOne)) 
+//     };
 
-    distribution.local.status.spawn(node, (e, v) => {
-      distribution.local.comm.send([rpcService, 'addOneService'],
-          {node: node, service: 'routes', method: 'put'}, (e, v) => {
+//     distribution.local.status.spawn(node, (e, v) => {
+//       distribution.local.comm.send([rpcService, 'addOneService'],
+//           {node: node, service: 'routes', method: 'put'}, (e, v) => {
             
-            const iterations = 1000;
-            let finished = 0;
-            const start = performance.now();
+//             const iterations = 1000;
+//             let finished = 0;
+//             const start = performance.now();
             
-            for (let i = 0; i < iterations; i++) {
-              distribution.local.comm.send([], 
-                  {node: node, service: 'addOneService', method: 'addOne'}, (e, v) => {
+//             for (let i = 0; i < iterations; i++) {
+//               distribution.local.comm.send([], 
+//                   {node: node, service: 'addOneService', method: 'addOne'}, (e, v) => {
                 
-                if (e) { cleanup(() => done(e)); return; }
-                finished++;
+//                 if (e) { cleanup(() => done(e)); return; }
+//                 finished++;
 
-                if (finished === iterations) {
-                  const end = performance.now();
-                  console.log(`Latency for ${iterations} RPC calls: ${(end - start).toFixed(3)} ms`);
-                  cleanup(done);
-                }
-              });
-            }
+//                 if (finished === iterations) {
+//                   const end = performance.now();
+//                   console.log(`Latency for ${iterations} RPC calls: ${(end - start).toFixed(3)} ms`);
+//                   cleanup(done);
+//                 }
+//               });
+//             }
 
-          });
-    });
-  });
-});
+//           });
+//     });
+//   });
+// });
 
 test('(1 pts) student test', (done) => {
   // put remove and then get. Make sure that get returns error.
