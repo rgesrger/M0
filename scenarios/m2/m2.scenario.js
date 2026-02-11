@@ -13,7 +13,9 @@ test('(2 pts) (scenario) simple callback practice', () => {
   function storeResults(result) {
     results.push(result);
   }
-
+  add(1, 2, storeResults);
+  add(0, 5, storeResults);
+  add(0, 7, storeResults);
   // ...
 
   expect(results).toEqual([3, 5, 7]);
@@ -27,23 +29,23 @@ test('(2 pts) (scenario) collect errors and successful results', (done) => {
 
   // Sample service
   const appleDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good apples');
   };
 
   const pineappleDeliveryService = (callback) => {
-    // ...
+    callback(new Error('bad pineapples'), 'bad pineapples')
   };
 
   const bananaDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good bananas');
   };
 
   const peachDeliveryService = (callback) => {
-    // ...
+    callback(null, 'good peaches');
   };
 
   const mangoDeliveryService = (callback) => {
-    // ...
+    callback(new Error('bad mangoes'), 'bad mangoes');
   };
 
   const services = [
@@ -95,13 +97,6 @@ test('(5 pts) (scenario) use rpc', (done) => {
   };
 
   const node = {ip: '127.0.0.1', port: 9009};
-
-  let addOneRPC = '?';
-
-  const rpcService = {
-    addOne: addOneRPC,
-  };
-
   distribution.node.start(() => {
     function cleanup(callback) {
       if (globalThis.distribution.node.server) {
@@ -111,7 +106,11 @@ test('(5 pts) (scenario) use rpc', (done) => {
           {node: node, service: 'status', method: 'stop'},
           callback);
     }
-
+    const asyncAddOne = distribution.util.wire.toAsync(addOne)
+    const addOneRPC = distribution.util.wire.createRPC(asyncAddOne);
+    const rpcService = {
+      addOne: addOneRPC,
+    };
     // Spawn the remote node.
     distribution.local.status.spawn(node, (e, v) => {
       // Install the addOne service on the remote node with the name 'addOneService'.

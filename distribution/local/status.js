@@ -9,7 +9,34 @@
  * @param {Callback} callback
  */
 function get(configuration, callback) {
-  return callback(new Error('status.get not implemented'));
+  const distribution = globalThis.distribution;
+  const config = distribution.node.config;
+  if (configuration === "sid") {
+    return callback(null, distribution.util.id.getSID(config));
+  }
+  if (configuration === "nid") {
+    return callback(null, distribution.util.id.getNID(config));
+  }
+  if (configuration === "ip") {
+    return callback(null, config.ip);
+  }
+  if (configuration === "port") {
+    return callback(null, config.port);
+  }
+  if (configuration === "heapTotal" ) {
+    return callback(null, process.memoryUsage().heapTotal);
+  }
+  if (configuration === "heapUsed") {
+    return callback(null, process.memoryUsage().heapUsed)
+  }
+  if (configuration === "counts") {
+    if (distribution.node.msgcount === undefined) {
+        distribution.node.msgcount = 0;
+      }
+    return callback(null, distribution.node.msgcount);
+  }
+  
+  return callback(new Error('configuration not supported'));
 };
 
 

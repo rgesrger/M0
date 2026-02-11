@@ -8,6 +8,7 @@ const url = require('node:url');
 const log = require('../util/log.js');
 
 const yargs = require('yargs/yargs');
+const { noDeprecation } = require("node:process");
 
 /**
  * @returns {Node}
@@ -82,18 +83,32 @@ function setNodeConfig() {
 function start(callback) {
   const server = http.createServer((req, res) => {
     /* Your server will be listening for PUT requests. */
-
     // Write some code...
-
-
+    if (globalThis.distribution.node.msgcount===undefined) {
+      globalThis.distribution.node.msgcount = 1;
+    } else {
+      globalThis.distribution.node.msgcount ++; 
+    }
+    if (req.method !== "PUT") {
+      const errmsg = globalThis.distribution.util.serialize(new Error("error: Not a put request"));
+      res.end(errmsg);
+      return;
+    }
     /*
       The path of the http request will determine the service to be used.
       The url will have the form: http://node_ip:node_port/service/method
     */
-
+    const distribution = globalThis.distribution;
+    const parsed = url.parse(req.url);
+    const parts = parsed.pathname.split('/').filter(x => x !== "");
+    const service = parts[1];
+    const method = parts[2];
     // Write some code...
-
-
+    if (!service || !method) {
+      const errmsg = globalThis.distribution.util.serialize([new Error(),null]);
+      res.end(errmsg);
+      return;
+    }
     /*
       A common pattern in handling HTTP requests in Node.js is to have a
       subroutine that collects all the data chunks belonging to the same
@@ -108,24 +123,34 @@ function start(callback) {
       Our nodes expect data in JSON format.
     */
 
-    // Write some code...
-
     /** @type {any[]} */
     const body = [];
-
     req.on('data', (chunk) => {
+      body.push(chunk);
     });
 
     req.on('end', () => {
-
       /*
-        Here, you can handle the service requests.
-        Use the local routes service to get the service you need to call.
-        You need to call the service with the method and arguments provided in the request.
-        Then, you need to serialize the result and send it back to the caller.
+       Handle  service requests.
       */
-
-      // Write some code...
+    const serializedmsg = body.join("");
+    const args = distribution.util.deserialize(serializedmsg);
+    distribution.local.routes.get(service, (e, v) => {
+      if (e) {
+        const errmsg = globalThis.distribution.util.serialize([e,null]);
+        res.end(errmsg);
+        return;
+      }
+      if (!v || typeof v[method] !== 'function') {
+        const err = new Error("service/method is not available");
+        res.end(globalThis.distribution.util.serialize([err,null]));
+        return;
+      }
+      v[method](...args, (e, v) => {
+        const msg = globalThis.distribution.util.serialize([e, v]);
+        res.end(msg);
+      });
+    });
 
     });
   });

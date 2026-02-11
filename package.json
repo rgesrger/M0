@@ -69,19 +69,19 @@
     },
     {
       "milestone": "M2",
-      "hours": 999,
-      "loc": 999,
+      "hours": 10,
+      "loc": 190,
       "dev": {
         "cpu-no": 999,
         "mem-gb": 999,
         "ssd-gb": 999
       },
       "throughput": {
-        "dev": [],
+        "dev": [0.814],
         "aws": []
       },
       "latency": {
-        "dev": [],
+        "dev": [1.228],
         "aws": []
       },
       "dloc": -99

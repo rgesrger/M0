@@ -18,7 +18,7 @@ function serialize(object) {
     case 'undefined':
       return `{"type":"undefined","value":null}`;
     case 'function':
-      return `{"type":"Function","value":"${object.toString()}"}`;
+      return `{"type":"Function","value":${JSON.stringify(object.toString())}}`;
     case 'object':
       const arr = [];
       let objtype = 'object';
@@ -49,7 +49,6 @@ function serialize(object) {
   }
 }
 
-
 /**
  * @param {string} string
  * @returns {any}
@@ -59,7 +58,8 @@ function deserialize(string) {
     throw new Error(`Invalid argument type: ${typeof string}.`);
   }
   // console.log('deserializeq', JSON.parse(string));
-  const parsed = JSON.parse(string);
+
+  let parsed = JSON.parse(string);
 
   // check if in right format
   const {type, value} = parsed;
@@ -79,7 +79,6 @@ function deserialize(string) {
     case 'string':
       return value;
     case 'Function':
-      // console.log("JIJI", value, "original", string);
       return eval(`(${value})`);
 
     case 'object':
@@ -105,6 +104,7 @@ function deserialize(string) {
     case 'date':
       return new Date(value);
   }
+  return new Error("unknown type")
 }
 
 module.exports = {
