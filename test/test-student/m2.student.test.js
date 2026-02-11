@@ -8,7 +8,7 @@
 
 require('../../distribution.js')({ip: '127.0.0.1', port: 1246});
 const {performance} = require('node:perf_hooks');
-const { start } = require('node:repl');
+
 require('.././helpers/sync-guard');
 const distribution = globalThis.distribution;
 const local = distribution.local;
@@ -18,7 +18,6 @@ const node = distribution.node.config;
 test('(1 pts) student test', (done) => {
   // testing status (checking whether the number of messages is getting counted)
   // sends a message (invalid but still technically a message)
-  
   let remote = {node: node, service: 'status', method: 'get'};
   let message = ['nid']; // Arguments to the method
 
@@ -26,23 +25,24 @@ test('(1 pts) student test', (done) => {
     try {
       expect(e).toBeFalsy();
       expect(v).toEqual(id.getNID(node));
+
+      let remote2 = {node: node, service: 'status', method: 'get'};
+      let message2 = ['counts'];
+      
+      local.comm.send(message2, remote2, (e, v)=> {
+        try {
+          expect(e).toBeFalsy();
+          expect(v).toBe(2);
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+
     } catch (error) {
       done(error);
     }
   });
-
-  // now when we get counts from status we should get 1
-  remote = {node: node, service: 'status', method: 'get'};
-  message = ['counts'];
-  local.comm.send(message, remote, (e, v)=> {
-    try {
-      expect(e).toBeFalsy();
-      expect(v).toBe(2);
-      done();
-    } catch (error) {
-      done(error);
-    }
-  })
 });
 
 
@@ -68,11 +68,55 @@ test('(1 pts) student test', (done) => {
       }
     });
   }
+
 }, 100000);
 
+// test that I ran here for convenience but commented out when submitting
+test('additional latency test (I wrote it here for convenience)', (done) =>{
+  console.log("custom test run");
+  let n_count = 0;
+  const addOne = () => ++n_count;
+  const node = {ip: '127.0.0.1', port: 9009};
+  distribution.node.start(() => {
+    function cleanup(cb) {
+      if (globalThis.distribution.node.server) globalThis.distribution.node.server.close();
+      distribution.local.comm.send([], {node: node, service: 'status', method: 'stop'}, cb);
+    }
+
+    const rpcService = { 
+      addOne: distribution.util.wire.createRPC(distribution.util.wire.toAsync(addOne)) 
+    };
+
+    distribution.local.status.spawn(node, (e, v) => {
+      distribution.local.comm.send([rpcService, 'addOneService'],
+          {node: node, service: 'routes', method: 'put'}, (e, v) => {
+            
+            const iterations = 1000;
+            let finished = 0;
+            const start = performance.now();
+            
+            for (let i = 0; i < iterations; i++) {
+              distribution.local.comm.send([], 
+                  {node: node, service: 'addOneService', method: 'addOne'}, (e, v) => {
+                
+                if (e) { cleanup(() => done(e)); return; }
+                finished++;
+
+                if (finished === iterations) {
+                  const end = performance.now();
+                  console.log(`Latency for ${iterations} RPC calls: ${(end - start).toFixed(3)} ms`);
+                  cleanup(done);
+                }
+              });
+            }
+
+          });
+    });
+  });
+});
 
 test('(1 pts) student test', (done) => {
-  // put remove
+  // put remove and then get. Make sure that get returns error.
   const echoService = {};
 
   echoService.echo = () => {
@@ -90,13 +134,39 @@ test('(1 pts) student test', (done) => {
 });
 
 test('(1 pts) student test', (done) => {
-  // Fill out this test case...
-    done(new Error('Not implemented'));
+  local.routes.get(2, (e, v) => {
+    try {
+      expect(e).toBeDefined();
+      expect(e).toBeInstanceOf(Error);
+      expect(v).toBeFalsy();
+      done();
+    } catch (error) {
+      done(error);
+    }
+  });
+  
 });
 
 test('(1 pts) student test', (done) => {
-  // Fill out this test case...
-    done(new Error('Not implemented'));
+  local.status.get(null, (e, v) => {
+    try {
+      expect(e).toBeDefined();
+      expect(e).toBeInstanceOf(Error);
+      expect(v).toBeFalsy();
+    } catch (error) {
+      done(error);
+    }
+  });
+  local.status.get([1,2,3], (e, v) => {
+    try {
+      expect(e).toBeDefined();
+      expect(e).toBeInstanceOf(Error);
+      expect(v).toBeFalsy();
+      done();
+    } catch (error) {
+      done(error);
+    }
+  });
 });
 
 beforeAll((done) => {

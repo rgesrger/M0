@@ -13,9 +13,12 @@ function get(configuration, callback) {
   let serviceName;
   if (typeof configuration === "string") {
     serviceName = configuration;
-  } else {
+  } else if (typeof configuration === 'object' && configuration !== null){
     serviceName = configuration.service;
-}
+  } else {
+    const t = typeof configuration;
+    return callback(new Error(`invalid type ${t}`),null);
+  }
   if (mapping.has(serviceName)) {
     return callback(null, mapping.get(serviceName));
   }

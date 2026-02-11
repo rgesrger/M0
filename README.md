@@ -152,7 +152,10 @@ My implementation comprises 2 software components, totaling around 90 lines of c
 The implementation involves
 
 
-My implementation comprises `<number>` software components, totaling `<number>` lines of code. Key challenges included `<1, 2, 3 + how you solved them>`.
+My implementation comprises 3 software components, totaling 150 (300 including testing code) lines of code. The biggest challenges involved
+getting the connection to work. At first, a lot of connections were closing instantly because I forgot to delete the callback(error)
+that was initially written as the default. Later I realized that since the comm.send were async, I would need to wrap all the actions I
+want to be done right after to be part of the callback.
 
 
 ## Correctness & Performance Characterization
