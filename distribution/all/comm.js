@@ -28,10 +28,47 @@ function comm(config) {
    * @param {Target} configuration
    * @param {Callback} callback
    */
+  const distribution = globalThis.distribution;
   function send(message, configuration, callback) {
-    callback(new Error('comm.send not implemented'));
-  }
+    let targetgid;
+    if (configuration.gid){
+      targetgid = configuration.gid;
+    } else{
+      targetgid = context.gid;
+    }
+    distribution.local.groups.get(targetgid, (e,v) => {
+      const sids = Object.keys(v);
+      const total = sids.length;
+      if (total ===0) {
+        return callback(new Error("group cannot be empty"), null);
+      }
+      let completed = 0;
+      const errors = {};
+      const results = {};
 
+      for (const sid of sids) {
+        const nodeobj = v[sid];
+        let remote = {
+          ...configuration,
+          node:nodeobj,
+        };
+        distribution.local.comm.send(message, remote, (e,v) => {
+          if(e) {
+            errors[sid] = e;
+          }
+          
+          if (v){
+            results[sid] = v;
+          }
+          completed ++;
+          if(completed === total) {
+            const finalerr = Object.keys(errors).length > 0 ? errors : {};
+            callback(finalerr, results);
+          }
+        })
+      }  
+    })
+  }
   return {send};
 }
 

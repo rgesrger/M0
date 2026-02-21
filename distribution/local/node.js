@@ -5,10 +5,10 @@
  */
 const http = require('node:http');
 const url = require('node:url');
-const log = require('../util/log.js');
-
+// const log = require('../util/log.js');
+let distribution = require("@brown-ds/distribution");
 const yargs = require('yargs/yargs');
-const { noDeprecation } = require("node:process");
+// const { noDeprecation } = require("node:process");
 
 /**
  * @returns {Node}
@@ -87,10 +87,10 @@ function start(callback) {
     if (globalThis.distribution.node.msgcount===undefined) {
       globalThis.distribution.node.msgcount = 1;
     } else {
-      globalThis.distribution.node.msgcount ++; 
+      globalThis.distribution.node.msgcount ++;
     }
-    if (req.method !== "PUT") {
-      const errmsg = globalThis.distribution.util.serialize(new Error("error: Not a put request"));
+    if (req.method !== 'PUT') {
+      const errmsg = globalThis.distribution.util.serialize(new Error('error: Not a put request'));
       res.end(errmsg);
       return;
     }
@@ -100,15 +100,17 @@ function start(callback) {
     */
     const distribution = globalThis.distribution;
     const parsed = url.parse(req.url);
-    const parts = parsed.pathname.split('/').filter(x => x !== "");
+    const parts = parsed.pathname.split('/').filter((x) => x !== '');
+    const gid = parts[0];
     const service = parts[1];
     const method = parts[2];
     // Write some code...
     if (!service || !method) {
-      const errmsg = globalThis.distribution.util.serialize([new Error(),null]);
+      const errmsg = globalThis.distribution.util.serialize([new Error(), null]);
       res.end(errmsg);
       return;
     }
+    service['gid'] = gid;
     /*
       A common pattern in handling HTTP requests in Node.js is to have a
       subroutine that collects all the data chunks belonging to the same
@@ -133,25 +135,24 @@ function start(callback) {
       /*
        Handle  service requests.
       */
-    const serializedmsg = body.join("");
-    const args = distribution.util.deserialize(serializedmsg);
-    distribution.local.routes.get(service, (e, v) => {
-      if (e) {
-        const errmsg = globalThis.distribution.util.serialize([e,null]);
-        res.end(errmsg);
-        return;
-      }
-      if (!v || typeof v[method] !== 'function') {
-        const err = new Error("service/method is not available");
-        res.end(globalThis.distribution.util.serialize([err,null]));
-        return;
-      }
-      v[method](...args, (e, v) => {
-        const msg = globalThis.distribution.util.serialize([e, v]);
-        res.end(msg);
+      const serializedmsg = body.join('');
+      const args = distribution.util.deserialize(serializedmsg);
+      distribution.local.routes.get(service, (e, v) => {
+        if (e) {
+          const errmsg = globalThis.distribution.util.serialize([e, null]);
+          res.end(errmsg);
+          return;
+        }
+        if (!v || typeof v[method] !== 'function') {
+          const err = new Error('service/method is not available');
+          res.end(globalThis.distribution.util.serialize([err, null]));
+          return;
+        }
+        v[method](...args, (e, v) => {
+          const msg = globalThis.distribution.util.serialize([e, v]);
+          res.end(msg);
+        });
       });
-    });
-
     });
   });
 

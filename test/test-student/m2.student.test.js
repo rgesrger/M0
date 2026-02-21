@@ -6,7 +6,7 @@
     Imporant: Do not modify any of the test headers (i.e., the test('header', ...) part). Doing so will result in grading penalties.
 */
 
-require('../../distribution.js')({ip: '127.0.0.1', port: 1246});
+require('../../distribution.js')({ip: '127.0.0.1', port: 1206});
 const {performance} = require('node:perf_hooks');
 
 require('.././helpers/sync-guard');
@@ -18,17 +18,16 @@ const node = distribution.node.config;
 test('(1 pts) student test', (done) => {
   // testing status (checking whether the number of messages is getting counted)
   // sends a message (invalid but still technically a message)
-  let remote = {node: node, service: 'status', method: 'get'};
-  let message = ['nid']; // Arguments to the method
+  const remote = {node: node, service: 'status', method: 'get'};
+  const message = ['nid']; // Arguments to the method
 
   local.comm.send(message, remote, (e, v) => {
     try {
       expect(e).toBeFalsy();
       expect(v).toEqual(id.getNID(node));
 
-      let remote2 = {node: node, service: 'status', method: 'get'};
-      let message2 = ['counts'];
-      
+      const remote2 = {node: node, service: 'status', method: 'get'};
+      const message2 = ['counts'];
       local.comm.send(message2, remote2, (e, v)=> {
         try {
           expect(e).toBeFalsy();
@@ -38,7 +37,6 @@ test('(1 pts) student test', (done) => {
           done(error);
         }
       });
-
     } catch (error) {
       done(error);
     }
@@ -68,7 +66,6 @@ test('(1 pts) student test', (done) => {
       }
     });
   }
-
 }, 100000);
 
 // test that I ran here for convenience but commented out when submitting
@@ -83,22 +80,19 @@ test('(1 pts) student test', (done) => {
 //       distribution.local.comm.send([], {node: node, service: 'status', method: 'stop'}, cb);
 //     }
 
-//     const rpcService = { 
-//       addOne: distribution.util.wire.createRPC(distribution.util.wire.toAsync(addOne)) 
+//     const rpcService = {
+//       addOne: distribution.util.wire.createRPC(distribution.util.wire.toAsync(addOne));
 //     };
 
 //     distribution.local.status.spawn(node, (e, v) => {
 //       distribution.local.comm.send([rpcService, 'addOneService'],
 //           {node: node, service: 'routes', method: 'put'}, (e, v) => {
-            
 //             const iterations = 1000;
 //             let finished = 0;
 //             const start = performance.now();
-            
 //             for (let i = 0; i < iterations; i++) {
-//               distribution.local.comm.send([], 
+//               distribution.local.comm.send([],
 //                   {node: node, service: 'addOneService', method: 'addOne'}, (e, v) => {
-                
 //                 if (e) { cleanup(() => done(e)); return; }
 //                 finished++;
 
@@ -144,7 +138,6 @@ test('(1 pts) student test', (done) => {
       done(error);
     }
   });
-  
 });
 
 test('(1 pts) student test', (done) => {
@@ -157,7 +150,7 @@ test('(1 pts) student test', (done) => {
       done(error);
     }
   });
-  local.status.get([1,2,3], (e, v) => {
+  local.status.get([1, 2, 3], (e, v) => {
     try {
       expect(e).toBeDefined();
       expect(e).toBeInstanceOf(Error);

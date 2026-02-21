@@ -23,7 +23,19 @@ function status(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
-    callback(new Error('status.get not implemented'));
+    const remote = {service: "status", method:"get"}
+    distribution[context.gid].comm.send([configuration],remote, (e,v) => {
+      if (configuration === "heapTotal" || configuration === "heapUsed") {
+        let sum = 0;
+        for (const n in v) {
+          sum += v[n];
+        }
+        return callback(e,sum);
+      }
+      return callback(e,v)
+    }
+  )
+
   }
 
   /**

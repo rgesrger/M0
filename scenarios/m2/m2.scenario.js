@@ -106,7 +106,7 @@ test('(5 pts) (scenario) use rpc', (done) => {
           {node: node, service: 'status', method: 'stop'},
           callback);
     }
-    const asyncAddOne = distribution.util.wire.toAsync(addOne)
+    const asyncAddOne = distribution.util.wire.toAsync(addOne);
     const addOneRPC = distribution.util.wire.createRPC(asyncAddOne);
     const rpcService = {
       addOne: addOneRPC,

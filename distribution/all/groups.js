@@ -25,7 +25,10 @@ function groups(config) {
    * @param {Callback} callback
    */
   function put(config, group, callback) {
-    return callback(new Error('groups.put not implemented'));
+    const remote = {service: "groups", method: "put"}
+    distribution[context.gid].comm.send([config, group], remote, (e,v) => {
+      return callback(e,v);
+    })
   }
 
   /**
@@ -33,7 +36,10 @@ function groups(config) {
    * @param {Callback} callback
    */
   function del(name, callback) {
-    return callback(new Error('groups.del not implemented'));
+    const remote = {service: "groups", method: "del"}
+    distribution[context.gid].comm.send([name], remote, (e,v) => {
+      return callback(e,v);
+    })
   }
 
   /**
@@ -41,7 +47,10 @@ function groups(config) {
    * @param {Callback} callback
    */
   function get(name, callback) {
-    return callback(new Error('groups.get not implemented'));
+    const remote = {service: "groups", method: "get"}
+    distribution[context.gid].comm.send([name], remote, (e,v) => {
+      return callback(e,v);
+    })
   }
 
   /**
@@ -50,7 +59,10 @@ function groups(config) {
    * @param {Callback} callback
    */
   function add(name, node, callback) {
-    return callback(new Error('groups.add not implemented'));
+    const remote = {service: "groups", method: "add"}
+    distribution[context.gid].comm.send([name,node], remote, (e,v) => {
+      return callback(e,v);
+    })
   }
 
   /**
@@ -59,7 +71,10 @@ function groups(config) {
    * @param {Callback} callback
    */
   function rem(name, node, callback) {
-    return callback(new Error('groups.rem not implemented'));
+    const remote = {service: "groups", method: "rem"}
+    distribution[context.gid].comm.send([name,node], remote, (e,v) => {
+      return callback(e,v);
+    })
   }
 
   return {

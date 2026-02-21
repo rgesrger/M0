@@ -23,7 +23,6 @@ const n6 = {ip: '127.0.0.1', port: 9006};
 test('(2 pts) all.comm.send(status.get(nid))', (done) => {
   const nids = Object.values(mygroupGroup).map((node) => id.getNID(node));
   const remote = {service: 'status', method: 'get'};
-
   distribution.mygroup.comm.send(['nid'], remote, (e, v) => {
     try {
       expect(e).toEqual({});
@@ -219,7 +218,7 @@ beforeAll((done) => {
           });
     };
 
-
+    
     // Now, start the nodes listening node
     distribution.node.start((e) => {
       if (e) {

@@ -20,7 +20,6 @@ function createRPC(func) {
  * @param {Function} func
  */
 function toAsync(func) {
-
   // It's the caller's responsibility to provide a callback
   const asyncFunc = (/** @type {any[]} */ ...args) => {
     const callback = args.pop();

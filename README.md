@@ -149,10 +149,12 @@ My implementation comprises 2 software components, totaling around 90 lines of c
 
 ## Summary
 
-The implementation involves
+My implementation comprises 3 software components, totaling 150 (300 including testing code) lines of code. One of the components
+is status, which uses the built in id function and process memory functions to provide information about the node. The counts
+status was recorded by adding a msgcount global variable for node. Every time the node receives a message it will
+increase the message counter by 1. 
 
-
-My implementation comprises 3 software components, totaling 150 (300 including testing code) lines of code. The biggest challenges involved
+The biggest challenges involved
 getting the connection to work. At first, a lot of connections were closing instantly because I forgot to delete the callback(error)
 that was initially written as the default. Later I realized that since the comm.send were async, I would need to wrap all the actions I
 want to be done right after to be part of the callback.
@@ -162,8 +164,9 @@ want to be done right after to be part of the callback.
 
 > Describe how you characterized the correctness and performance of your implementation
 
-
-*Correctness*: I wrote `<number>` tests; these tests take `<time>` to execute.
+*Correctness*: I wrote 5 tests; these tests take 1.237s to execute. They test for unexpected input types for status and route.
+One test also tested whether counts was counting the messages correctly (based on how many messages the node processed
+whether the message was successful or not).
 
 
 *Performance*: I characterized the performance of comm and RPC by sending 1000 service requests in a tight loop. Average throughput and latency is recorded in `package.json`.
@@ -172,3 +175,10 @@ want to be done right after to be part of the callback.
 ## Key Feature
 
 > How would you explain the implementation of `createRPC` to someone who has no background in computer science — i.e., with the minimum jargon possible?
+
+Suppose we have something we want to do (a function). We want to run the function on a computer 
+somewhere else. When we call createRPC(f), it returns a new function g called a stub.
+When someone runs g, it packages the arguments that we put into g to the function f
+on the remote node. Since the remote node now has all the information necessary to execute f,
+it may now execute it. After receiving the result, it has to package and send it back.
+In summary, createRPC allows us to do some functionality on someone else's node.
