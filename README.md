@@ -182,3 +182,40 @@ When someone runs g, it packages the arguments that we put into g to the functio
 on the remote node. Since the remote node now has all the information necessary to execute f,
 it may now execute it. After receiving the result, it has to package and send it back.
 In summary, createRPC allows us to do some functionality on someone else's node.
+
+
+# M3: Node Groups & Gossip Protocols
+
+
+## Summary
+
+The implementation consists of 5 software components: local.groups, all.groups, all.routes,all.status, all.comm, all.groups. 
+Local.groups uses a map to keep track of the nodes that belong to each gid. When a group is put, local.groups also
+instantiates the distribution.gid object and gives the distributed version of the service to it. During
+this instantiation process, the config is also passed to each of the distributed services,
+which allows us to use services in the form: distribution.gid.mygroup.comm.
+
+all.comm involved getting each node within the gid (using context.gid) and sending a message to each node in the group.
+Every other distributed service essentially involved using all.comm to perform operations on every node 
+in the group.
+
+
+## Correctness & Performance Characterization
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness* -- number of tests and time they take.
+
+
+
+## Key Feature
+
+> What is the point of having a gossip protocol? Why doesn't a node just send the message to _all_ other nodes in its group?
+
+An individual node sending the message to all other nodes would be much slower, especially if there are 
+a lot of nodes. It would have a time complexity of O(n), where n is the number of nodes, whereas 
+for gossip it would be O(log(n)).
+
+There is also a single point of failure, since if the one broadcasting node fails in the middle, then many 
+of the nodes would not receive the message.

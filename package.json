@@ -93,15 +93,15 @@
       "dev": {
         "cpu-no": 8,
         "mem-gb": 16,
-        "ssd-gb": 999
+        "ssd-gb": 926
       },
       "throughput": {
         "dev": [3.19],
-        "aws": []
+        "aws": [1.61]
       },
       "latency": {
         "dev": [0.31287],
-        "aws": []
+        "aws": [0.620]
       },
       "dloc": -99
     },
