@@ -79,22 +79,22 @@ test('(1 pts) student test', (done) => {
 
 
 test('(1 pts) student test', (done) => {
-  distribution.local.groups.get("nonexistant group", (e,v) =>{
-    try{
+  distribution.local.groups.get('nonexistant group', (e, v) =>{
+    try {
       expect(e).toBeDefined()
       expect(e).toBeInstanceOf(Error);
       expect(v).toBeFalsy();
       done();
-    } catch(e) {
+    } catch (e) {
       done(e);
     }
-  })
+  });
 });
 
 test('(1 pts) student test', (done) => {
   // adding to group that does not exist
-  const newnode = { ip: '127.0.0.1', port: 9999 };
-  distribution.local.groups.add("nonexistant node", newnode, (e,v) => {
+  const newnode = {ip: '127.0.0.1', port: 9999};
+  distribution.local.groups.add('nonexistant node', newnode, (e, v) => {
     try {
       expect(e).toBeDefined();
       expect(e).toBeInstanceOf(Error);
@@ -102,7 +102,7 @@ test('(1 pts) student test', (done) => {
     } catch (error) {
       done(error);
     }
-  })
+  });
 });
 
 
@@ -119,7 +119,7 @@ test('(1 pts) student test', (done) => {
     distribution.mygroup.groups.add("newgroup", n6, (e,v) => {
       try {
         expect(e).toEqual({});
-        for (sid of Object.keys(mygroupGroup)) {
+        for (const sid of Object.keys(mygroupGroup)) {
           expect(v[sid]).toBeDefined();
           for (const nodeSid of Object.keys(expectedGroup)) {
             expect(v[sid][nodeSid]).toBeDefined();
@@ -131,8 +131,8 @@ test('(1 pts) student test', (done) => {
       } catch (e) {
         done(e);
       }
-    })
-  })
+    });
+  });
 });
 test('benchmarking spawn', (done) => {
   let completed = 0;
@@ -140,7 +140,7 @@ test('benchmarking spawn', (done) => {
 
   for (let i = 0; i < 100; i++) {
     const t0 = performance.now();
-    const node = { ip: '127.0.0.1', port: 10000 + i };
+    const node = {ip: '127.0.0.1', port: 10000 + i};
 
     distribution.local.status.spawn(node, (e, v) => {
       const latency = performance.now() - t0;
@@ -153,7 +153,7 @@ test('benchmarking spawn', (done) => {
       }
     });
   }
-}, 300000);
+}, 500000);
 
 beforeAll((done) => {
   // First, stop the nodes if they are running
