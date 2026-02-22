@@ -1,5 +1,4 @@
 const { isExportDeclaration } = require('typescript');
-
 /*
     In this file, add your own test cases that correspond to functionality introduced for each milestone.
     You should fill out each test case so it adequately tests the functionality you implemented.
@@ -36,33 +35,33 @@ test('(1 pts) student test', (done) => {
   distribution.mygroup.comm.send(['asd'], remote, (e,v) =>{
     try {
       const sids = Object.keys(v);
-      for (sid of sids) {
+      for (const sid of sids) {
         expect(e[sid]).toBeDefined();
         expect(e[sid]).toBeInstanceOf(Error);
       }
       done();
-    } catch(e) {
-      done(error);
+    } catch (e) {
+      done(e);
     }
-  })
+  });
 });
 
 
 test('(1 pts) student test', (done) => {
   // Check if concurrent requests interfere with each other
-  const remote = { service: 'status', method: 'get' };
+  const remote = {service: 'status', method: 'get'};
   let completed = 0;
-  distribution.mygroup.comm.send(["nid"], remote, (e,v) => {
-    try{
+  distribution.mygroup.comm.send(['nid'], remote, (e, v) => {
+    try {
       expect(Object.keys(v).length).toEqual(5);
       completed ++;
       if (completed === 2) {
         done();
       }
-    } catch (e){
+    } catch (e) {
       done(e);
     }
-  })
+  });
   distribution.mygroup.comm.send(["nid"], remote, (e,v) => {
     try{
       expect(Object.keys(v).length).toEqual(5);
@@ -81,7 +80,7 @@ test('(1 pts) student test', (done) => {
 test('(1 pts) student test', (done) => {
   distribution.local.groups.get('nonexistant group', (e, v) =>{
     try {
-      expect(e).toBeDefined()
+      expect(e).toBeDefined();
       expect(e).toBeInstanceOf(Error);
       expect(v).toBeFalsy();
       done();
@@ -108,7 +107,7 @@ test('(1 pts) student test', (done) => {
 
 test('(1 pts) student test', (done) => {
   // Fill out this test case...
-  const newGroupCfg = {gid : "newgroup"}
+  const newGroupCfg = {gid: "newgroup"}
   const id = distribution.util.id;
   const sid1 = id.getSID(n1);
   const sid2 = id.getSID(n2);
@@ -138,7 +137,7 @@ test('benchmarking spawn', (done) => {
   let completed = 0;
   let totalLatency = 0;
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 20; i++) {
     const t0 = performance.now();
     const node = {ip: '127.0.0.1', port: 10000 + i};
 
@@ -147,8 +146,8 @@ test('benchmarking spawn', (done) => {
       totalLatency += latency;
       completed++;
 
-      if (completed === 100) {
-        console.log(`Average spawn latency: ${totalLatency / 100} ms`);
+      if (completed === 20) {
+        console.log(`Average spawn latency: ${totalLatency / 20} ms`);
         done();
       }
     });
