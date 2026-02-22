@@ -133,26 +133,26 @@ test('(1 pts) student test', (done) => {
     });
   });
 });
-test('benchmarking spawn', (done) => {
-  let completed = 0;
-  let totalLatency = 0;
+// test('benchmarking spawn', (done) => {
+//   let completed = 0;
+//   let totalLatency = 0;
 
-  for (let i = 0; i < 20; i++) {
-    const t0 = performance.now();
-    const node = {ip: '127.0.0.1', port: 10000 + i};
+//   for (let i = 0; i < 20; i++) {
+//     const t0 = performance.now();
+//     const node = {ip: '127.0.0.1', port: 10000 + i};
 
-    distribution.local.status.spawn(node, (e, v) => {
-      const latency = performance.now() - t0;
-      totalLatency += latency;
-      completed++;
+//     distribution.local.status.spawn(node, (e, v) => {
+//       const latency = performance.now() - t0;
+//       totalLatency += latency;
+//       completed++;
 
-      if (completed === 20) {
-        console.log(`Average spawn latency: ${totalLatency / 20} ms`);
-        done();
-      }
-    });
-  }
-}, 500000);
+//       if (completed === 20) {
+//         console.log(`Average spawn latency: ${totalLatency / 20} ms`);
+//         done();
+//       }
+//     });
+//   }
+// }, 500000);
 
 beforeAll((done) => {
   // First, stop the nodes if they are running
