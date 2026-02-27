@@ -8,7 +8,6 @@ jest.spyOn(process, 'exit').mockImplementation((n) => { });
 test('(1 pts) all.mem.put(jcarb)/mygroup.mem.get(jcarb)', (done) => {
   const user = {first: 'John', last: 'Carberry'};
   const key = 'jcarbmpmg';
-
   distribution.all.mem.put(user, key, (e, v) => {
     distribution.mygroup.mem.get(key, (e, v) => {
       try {
@@ -98,7 +97,6 @@ test('(1 pts) all.mem.put/del(jcarb)', (done) => {
 test('(1 pts) all.mem.put/del/get(jcarb)', (done) => {
   const user = {first: 'Josiah', last: 'Carberry'};
   const key = 'jcarbmpdg';
-
   distribution.mygroup.mem.put(user, key, (e, v) => {
     distribution.mygroup.mem.del(key, (e, v) => {
       distribution.mygroup.mem.get(key, (e, v) => {
@@ -284,6 +282,25 @@ test('(3 pts) all.mem.put(no key)', (done) => {
 });
 
 
+test('(0 pts) putting to all.mem does not affect different groups', (done) => {
+  const key = 'samekey';
+  const a = {a: 1};
+  const b = {b: 2};
+
+  distribution.mygroup.mem.put(a, key, (e, v) => {
+    if (e) return done(e);
+    distribution.mygroup.mem.put(b, {key, gid: 'group1'}, (e, v) => {
+      if (e) return done(e);
+      distribution.mygroup.mem.get(key, (e, v) => {
+        if (e) return done(e);
+        expect(v).toEqual(a);
+        done();
+      });
+    });
+  });
+});
+
+
 /*
   Testing infrastructure code.
 */
@@ -379,7 +396,9 @@ beforeAll((done) => {
                             .put(group3Config, group3Group, (e, v) => {
                               distribution.local.groups
                                   .put(group4Config, group4Group, (e, v) => {
-                                    done();
+                                    distribution.mygroup.groups.put(group1Config, group1Group, (e, v) => {
+                                      done();
+                                    });
                                   });
                             });
                       });

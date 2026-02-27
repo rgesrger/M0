@@ -30,10 +30,19 @@ const util = globalThis.distribution.util;
  */
 function put(state, configuration, callback) {
   let key;
+  let gid=null
   if (!configuration) {
     key = id.getID(state);
   } else{
-    key = configuration;
+    if (typeof configuration == "string") {
+      key = configuration;
+    } else{
+      key = configuration.key;
+      gid = configuration.gid;
+    }
+  }
+  if (gid !== null && gid !== undefined) {
+    key = `${gid}${key}`
   }
   const strkey = String(key).replace(/[^a-zA-Z0-9]/g, '');
   const nid = id.getNID(node);
@@ -50,9 +59,7 @@ function put(state, configuration, callback) {
       } 
       return callback(null, util.deserialize(serializedstate));
     })
-
   })
-
 }
 
 /**
@@ -60,7 +67,18 @@ function put(state, configuration, callback) {
  * @param {Callback} callback
  */
 function get(configuration, callback) {
-  const strcfg= String(configuration).replace(/[^a-zA-Z0-9]/g, '');
+  let key;
+  let gid = null;
+  if (typeof configuration == "string") {
+    key = configuration;
+  } else{
+    key = configuration.key;
+    gid = configuration.gid;
+  }
+  if (gid !== null && gid !== undefined) {
+    key = `${gid}${key}`
+  }
+  const strcfg= String(key).replace(/[^a-zA-Z0-9]/g, '');
   const dir = path.join(storedir, id.getNID(node), strcfg);
   fs.readFile(dir, 'utf-8', (e,v) => {
     if (e) {
@@ -75,7 +93,18 @@ function get(configuration, callback) {
  * @param {Callback} callback
  */
 function del(configuration, callback) {
-  const strcfg= String(configuration).replace(/[^a-zA-Z0-9]/g, '');
+  let key;
+  let gid = null;
+  if (typeof configuration == "string") {
+    key = configuration;
+  } else{
+    key = configuration.key;
+    gid = configuration.gid;
+  }
+  if (gid !== null && gid !== undefined) {
+    key = `${gid}${key}`
+  }
+  const strcfg= String(key).replace(/[^a-zA-Z0-9]/g, '');
   const dir = path.join(storedir, id.getNID(node), strcfg);
   let todelete;
   fs.readFile(dir, 'utf-8', (e,v) => {
@@ -90,8 +119,6 @@ function del(configuration, callback) {
       return callback(null, todelete);
     })
   })
-
-
 }
 
 /**
@@ -100,7 +127,7 @@ function del(configuration, callback) {
  * @param {Callback} callback
  */
 function append(state, configuration, callback) {
-  return callback(new Error('store.append not implemented'));
+  return callback(new Error('store.append not implemented')); // You'll need to implement this method for the distributed processing milestone.
 }
 
 module.exports = {put, get, del, append};

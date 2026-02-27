@@ -36,21 +36,30 @@ function get(name, callback) {
 function put(config, group, callback) {
   
   let gid;
+  let cfg;
+  let hash = null;
   if (typeof config === "string") {
     gid = config
   } else{
-    gid =config.gid
+    gid =config.gid;
+    if (config.hash) {
+      hash = config.hash
+    } 
+  }
+  if (hash !== null) {
+    cfg = {gid:gid, hash:hash}
+  } else{
+    cfg = {gid:gid}
   }
   namestonodes.set(gid, group);
   distribution[gid] ={}
   const services = Object.keys(distribution.all);
-  
   for (const service of services) {
     if (service in distribution.all) {
-      distribution[gid][service] = require(`../all/${service}.js`)({gid:gid})
+      distribution[gid][service] = require(`../all/${service}.js`)(cfg)
     }
   }
-  return callback(null, namestonodes.get(config));
+  return callback(null, namestonodes.get(gid));
 }
 
 /**

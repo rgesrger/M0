@@ -72,10 +72,23 @@ const naiveHash = (kid, nids) => {
 
 /** @type { Hasher } */
 const consistentHash = (kid, nids) => {
+  const numkid = BigInt("0x"+kid);
+  const numnids = nids.map((nid)=> BigInt("0x"+nid));
+  const sortedarr = [...numnids,numkid].sort((a, b) => (a<b? -1: a>b ?1: 0));
+  const kidIndex = sortedarr.indexOf(numkid);
+  const nextNum = sortedarr[(kidIndex + 1) % sortedarr.length];
+  const originalIndex = numnids.indexOf(nextNum);
+  return nids[originalIndex];
 };
 
 /** @type { Hasher } */
 const rendezvousHash = (kid, nids) => {
+  const concatnids = [...nids].map((nid) => kid+nid);
+  const hashed = [...concatnids].map((elt) => getID(elt));
+  const numhashed = [...hashed].map((elt)=> BigInt("0x"+elt)).sort((a, b) => (a<b? -1: a>b ?1: 0));
+  const max = numhashed[numhashed.length - 1];
+  const index = hashed.findIndex((elt) => BigInt("0x"+elt) === max);
+  return nids[index];
 };
 
 module.exports = {

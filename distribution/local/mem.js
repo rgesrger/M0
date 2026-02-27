@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * @typedef {import("../types.js").Callback} Callback
  *
@@ -8,6 +9,7 @@
  * @typedef {StoreConfig | string | null} SimpleConfig
  */
 
+
 /**
  * @param {any} state
  * @param {SimpleConfig} configuration
@@ -15,10 +17,24 @@
  */
 const map = new Map();
 function put(state, configuration, callback) {
+  let key;
+  let gid = null;
   if (configuration===null) {
-    configuration = globalThis.distribution.util.id.getID(state);
+    key = globalThis.distribution.util.id.getID(state);
+  } else{
+    if (typeof configuration === "string") {
+      key = configuration;
+    } else{
+      key = configuration.key;
+      gid = configuration.gid;
+    }
   }
-  map.set(configuration, state)
+  if (gid !== null) {
+    map.set(`${gid}:${key}`, state)
+  } else {
+    map.set(key, state)
+  }
+  
   return callback(null, state);
 };
 
@@ -28,7 +44,7 @@ function put(state, configuration, callback) {
  * @param {Callback} callback
  */
 function append(state, configuration, callback) {
-  return callback(new Error('mem.append not implemented'));
+  return callback(new Error('mem.append not implemented')); // You'll need to implement this method for the distributed processing milestone.
 };
 
 /**
@@ -36,10 +52,26 @@ function append(state, configuration, callback) {
  * @param {Callback} callback
  */
 function get(configuration, callback) {
-  if (map.has(configuration)) {
-    return callback(null, map.get(configuration))
+  let key;
+  let gid = null;
+  if (typeof configuration === "string") {
+    key = configuration;
   } else{
-    return callback(new Error())
+    key = configuration.key;
+    gid = configuration.gid;
+  }
+  if (gid !== null) {
+    key = `${gid}:${key}`
+  }
+  if (map.has(key)) {
+    if (gid !== null) {
+      return callback(null, map.get(key))
+    }else {
+      return callback(null, map.get(key))
+    }
+    
+  } else{
+    return callback(new Error("no key available"))
   }
 }
 
@@ -48,9 +80,20 @@ function get(configuration, callback) {
  * @param {Callback} callback
  */
 function del(configuration, callback) {
-  if (map.has(configuration)) {
-    const todelete = map.get(configuration);
-    map.delete(configuration);
+  let key;
+  let gid = null;
+  if (typeof configuration === "string") {
+    key = configuration;
+  } else{
+    key = configuration.key;
+    gid = configuration.gid;
+  }
+  if (gid !== null) {
+    key = `${gid}:${key}`
+  }
+  if (map.has(key)) {
+    const todelete = map.get(key);
+    map.delete(key);
     return callback(null, todelete);
   } else{
     return(callback(new Error("key not found")));

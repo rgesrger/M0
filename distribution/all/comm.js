@@ -56,7 +56,6 @@ function comm(config) {
           if(e) {
             errors[sid] = e;
           }
-          
           if (v){
             results[sid] = v;
           }

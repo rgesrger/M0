@@ -26,6 +26,9 @@
  * @param {Config} config
  * @returns {Mem}
  */
+const distribution = globalThis.distribution;
+const crypto = require('crypto');
+const { loadEnvFile } = require("process");
 function mem(config) {
   const context = {};
   context.gid = config.gid || 'all';
@@ -36,7 +39,47 @@ function mem(config) {
    * @param {Callback} callback
    */
   function get(configuration, callback) {
-    return callback(new Error('mem.get not implemented'));
+    
+    let gid = context.gid;
+    distribution.local.groups.get(gid, (e,v) =>{
+      if (e) {
+        return callback(new Error());
+      }
+      const sids = Object.keys(v);
+      let nids = [];
+      const m = {}
+      for (const sid of sids) {
+        let nid = distribution.util.id.getNID(v[sid]);
+        nids.push(nid);
+        m[nid] = v[sid];
+      }
+      //
+      let targetKey;
+      if (typeof configuration === 'object') {
+        targetKey = configuration.key;
+        if (configuration.gid) gid = configuration.gid;
+      } else {
+        if (configuration ===null) {
+          targetKey = null;
+        } else{
+          targetKey = configuration;
+        }
+      }
+
+      // figure out what node to put it in
+      const hashkey =distribution.util.id.getID(configuration);
+      const nodenid = context.hash(hashkey, nids);
+      const remote = {service: "mem", method: "get", node: m[nodenid]}
+      // to encode gid inside
+      const confobj = {key: targetKey, gid: gid}
+      distribution.local.comm.send([confobj], remote, (e,v) => {
+        if (e) {
+          return callback(new Error("error in getting"));
+        } else {
+          return callback(null, v);
+        }
+      })
+    })
   }
 
   /**
@@ -45,23 +88,47 @@ function mem(config) {
    * @param {Callback} callback
    */
   function put(state, configuration, callback) {
-    if (configuration===null) {
-      configuration = globalThis.distribution.util.id.getID(state);
-    }
-    const gid = config.gid;
+
+    let gid = context.gid;
     distribution.local.groups.get(gid, (e,v) =>{
+      if (e) {
+        return callback(e);
+      }
       const sids = Object.keys(v);
       let nids = [];
+      const m = {}
       for (const sid of sids) {
-        let node = v[sid];
-        let nid = distribution.util.id.getNID(node);
+        let nid = distribution.util.id.getNID(v[sid]);
         nids.push(nid);
+        m[nid] = v[sid];
       }
-      const key = String(configuration).replace(/[^a-zA-Z0-9]/g, '');
-      context.hash(key, nids)
+
+      // figure out what node to put it in
+      let targetKey;
+      if (configuration === null) {
+        targetKey = distribution.util.id.getID(state);
+      } else if (typeof configuration === 'object') {
+        targetKey = configuration.key;
+        if (configuration.gid) gid = configuration.gid;
+      } else {
+        targetKey = configuration;
+      }
+
+      const hashkey = distribution.util.id.getID(targetKey);
+      const nodenid = context.hash(hashkey, nids);
+      const remote = {service: "mem", method: "put", node: m[nodenid]}
+
+      // to encode gid inside
+      const confobj = {key: targetKey, gid: gid}
+      distribution.local.comm.send([state, confobj], remote, (e,v) => {
+        if (e) {
+          return callback(e);
+        } else {
+          return callback(null, v);
+        }
+      })
     })
-    
-    return callback(new Error('mem.put not implemented'));
+  
   }
 
   /**
@@ -70,7 +137,7 @@ function mem(config) {
    * @param {Callback} callback
    */
   function append(state, configuration, callback) {
-    return callback(new Error('mem.append not implemented'));
+    return callback(new Error('mem.append not implemented')); // You'll need to implement this method for the distributed processing milestone.
   }
 
   /**
@@ -78,7 +145,41 @@ function mem(config) {
    * @param {Callback} callback
    */
   function del(configuration, callback) {
-    return callback(new Error('mem.del not implemented'));
+    let gid = context.gid;
+    distribution.local.groups.get(gid, (e,v) =>{
+      if (e) {
+        return callback(new Error());
+      }
+      
+      const sids = Object.keys(v);
+      let nids = [];
+      const m = {}
+      for (const sid of sids) {
+        let nid = distribution.util.id.getNID(v[sid]);
+        nids.push(nid);
+        m[nid] = v[sid];
+      }
+
+      let targetKey;
+      if (typeof configuration === 'object') {
+        targetKey = configuration.key;
+        if (configuration.gid) gid = configuration.gid;
+      } else {
+        targetKey = configuration;
+      }
+      // figure out what node to put it in
+      const hashkey =distribution.util.id.getID(targetKey);
+      const nodenid = context.hash(hashkey, nids);
+      const remote = {service: "mem", method: "del", node: m[nodenid]}
+      const confobj = {key: targetKey, gid: gid}
+      distribution.local.comm.send([confobj], remote, (e,v) => {
+        if (e) {
+          return callback(new Error());
+        } else {
+          return callback(null, v);
+        }
+      })
+    })
   }
 
   /**
