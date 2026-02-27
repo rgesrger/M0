@@ -45,6 +45,22 @@ function mem(config) {
    * @param {Callback} callback
    */
   function put(state, configuration, callback) {
+    if (configuration===null) {
+      configuration = globalThis.distribution.util.id.getID(state);
+    }
+    const gid = config.gid;
+    distribution.local.groups.get(gid, (e,v) =>{
+      const sids = Object.keys(v);
+      let nids = [];
+      for (const sid of sids) {
+        let node = v[sid];
+        let nid = distribution.util.id.getNID(node);
+        nids.push(nid);
+      }
+      const key = String(configuration).replace(/[^a-zA-Z0-9]/g, '');
+      context.hash(key, nids)
+    })
+    
     return callback(new Error('mem.put not implemented'));
   }
 
