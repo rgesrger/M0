@@ -1,3 +1,4 @@
+require('@brown-ds/distribution');
 const node = require('./distribution/local/node.js');
 
 node.start((err) => {
