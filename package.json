@@ -108,20 +108,20 @@
     },
     {
       "milestone": "M4",
-      "hours": 999,
-      "loc": 999,
+      "hours": {"total": 10, "T1": 2, "T2": 1, "T3":5, "T4":1, "T5": 1},
+      "loc": 300,
       "dev": {
-        "cpu-no": 999,
-        "mem-gb": 999,
-        "ssd-gb": 999
+        "cpu-no": 8,
+        "mem-gb": 16,
+        "ssd-gb": 926
       },
       "throughput": {
-        "dev": [],
-        "aws": []
+        "dev": [445, 1783],
+        "aws": [657, 2623]
       },
       "latency": {
-        "dev": [],
-        "aws": []
+        "dev": [2.25, 0.56],
+        "aws": [1.52, 0.38]
       },
       "dloc": -99
     },

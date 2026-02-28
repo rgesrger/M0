@@ -219,3 +219,18 @@ for gossip it would be O(log(n)).
 
 There is also a single point of failure, since if the one broadcasting node fails in the middle, then many 
 of the nodes would not receive the message.
+
+# M4: Distributed Storage
+
+## Summary
+
+The mem service is implemented by keeping a local map. The put and get functionality puts and get keys based 
+on their gid, so that even with the same key, if the gid is different different values will be accessed. This
+was implemented by attaching the gid as the beginning of the string. Store works the same way as mem,
+except it will save all of the information in the store folder. The value is additionally serialized to allow for
+putting more complex objects such as arrays, and deserialized when getting.
+
+The distributed versions of mem and store utilize the hash function to first decide which node to put the kv pair 
+in, and use local.comm.send to call the local mem/store on the corresponding nodes.
+
+

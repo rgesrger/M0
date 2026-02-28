@@ -9,7 +9,6 @@
  * @typedef {StoreConfig | string | null} SimpleConfig
  */
 
-
 /**
  * @param {any} state
  * @param {SimpleConfig} configuration
@@ -69,7 +68,6 @@ function get(configuration, callback) {
     }else {
       return callback(null, map.get(key))
     }
-    
   } else{
     return callback(new Error("no key available"))
   }

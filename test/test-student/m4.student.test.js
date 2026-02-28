@@ -15,7 +15,7 @@ test('(1 pts) student test', (done) => {
   const key = 'jcarbmpg';
 
   distribution.local.mem.put(user, key, (e, v) => {
-    distribution.local.mem.get(null, (e, v) => {
+    distribution.local.mem.get("a", (e, v) => {
       try {
         expect(e).toBeInstanceOf(Error);
         done();
