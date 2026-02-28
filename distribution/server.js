@@ -1,9 +1,9 @@
 require('../distribution.js')();
-const node = require('./local/node.js');
-
-node.start((err) => {
-  if (err) {
-    console.error('Error starting node:', err);
+const distribution = globalThis.distribution;
+const node = distribution.node;
+node.start((e) => {
+  if (e) {
+    console.error('Error starting node:', e);
     process.exit(1);
   }
   console.log(`Node is running on ${node.config.ip}:${node.port}`);
