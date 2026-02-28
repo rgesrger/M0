@@ -1,3 +1,4 @@
+require('../distribution.js')();
 const node = require('./local/node.js');
 
 node.start((err) => {
