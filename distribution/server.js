@@ -6,5 +6,5 @@ node.start((e) => {
     console.error('Error starting node:', e);
     process.exit(1);
   }
-  console.log(`Node is running on ${node.config.ip}:${node.port}`);
+  console.log(`Node is running on ${node.config.ip}:${node.config.port}`);
 });
