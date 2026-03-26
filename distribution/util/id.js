@@ -9,7 +9,7 @@
 
 const assert = require('assert');
 const crypto = require('crypto');
-
+const fs = require('fs')
 /**
  * @param {any} obj
  * @returns {ID}

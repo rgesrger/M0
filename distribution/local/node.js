@@ -102,15 +102,15 @@ function start(callback) {
     const parsed = url.parse(req.url);
     const parts = parsed.pathname.split('/').filter((x) => x !== '');
     const gid = parts[0];
-    const service = parts[1];
+    const servicename = parts[1];
     const method = parts[2];
     // Write some code...
-    if (!service || !method) {
+    if (!servicename || !method) {
       const errmsg = globalThis.distribution.util.serialize([new Error(), null]);
       res.end(errmsg);
       return;
     }
-    service['gid'] = gid;
+    const service= {service:servicename, gid:gid}
     /*
       A common pattern in handling HTTP requests in Node.js is to have a
       subroutine that collects all the data chunks belonging to the same

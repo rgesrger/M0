@@ -57,6 +57,7 @@ function mem(config) {
       let targetKey;
       if (typeof configuration === 'object') {
         targetKey = configuration.key;
+        // overrite gid with the one specified by configuration
         if (configuration.gid) gid = configuration.gid;
       } else {
         if (configuration ===null) {

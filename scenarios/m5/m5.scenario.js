@@ -94,9 +94,25 @@ test('(10 pts) (scenario) all.mr:dlib', (done) => {
 */
 
   const mapper = (key, value) => {
+    const text = String(value);
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const output = []; 
+
+    for (const word of words) {
+      const obj = {};
+      obj[word] = 1; 
+      output.push(obj);
+    }
+    
+    return output;
   };
 
   const reducer = (key, values) => {
+    const sum = values.reduce((accumulator, current) => accumulator + current, 0);
+    const output = {};
+    output[key] = sum;
+    
+    return output;
   };
 
   const dataset = [
@@ -166,14 +182,57 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
     TF = (Number of times the term appears in a document) / (Total number of terms in the document)
     IDF = log10(Total number of documents / Number of documents with the term in it)
     TF-IDF = TF * IDF
-*/
+  */
+  // distribution.tfidf.store.del('doc4', (e, v) => {
+  //   console.log("Attempted to purge doc4:", v);
+  // });
 
   const mapper = (key, value) => {
+    console.log("key", key, "value", value)
+    const text = String(value);
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    const totalWords = words.length;
+    const output = [];
+
+    for (const word of words) {
+      const obj = {};
+      obj[word] = {doc: key, totalWords: totalWords }; 
+      output.push(obj);
+    }
+    console.log("mapper output", output)
+    return output;
   };
 
-  // Reduce function: calculate TF-IDF for each word
   const reducer = (key, values) => {
     const totalDocs = 3;
+    const docIdtoTf = {};
+    const docIdtoLength = {};
+
+    for (const item of values) {
+      const parsedItem = item; 
+      const docId = parsedItem.doc;
+      
+      if (docIdtoTf[docId]) {
+        docIdtoTf[docId]++;
+      } else {
+        docIdtoTf[docId] = 1;
+        docIdtoLength[docId] = parsedItem.totalWords; 
+      }
+    }
+
+    const df = Object.keys(docIdtoTf).length;
+    const idf = Math.log10(totalDocs/df);
+
+    const finalScores = {};
+    for (const docId in docIdtoTf) {
+      const tf = docIdtoTf[docId]/docIdtoLength[docId];
+      const tfidf = tf * idf;
+      finalScores[docId] = Number(tfidf.toFixed(2));
+    }
+
+    const output = {};
+    output[key] = finalScores; 
+    return output;
   };
 
   const dataset = [
@@ -194,6 +253,7 @@ test('(10 pts) (scenario) all.mr:tfidf', (done) => {
   const doMapReduce = () => {
     distribution.tfidf.store.get(null, (e, v) => {
       try {
+        console.log("value outputed", v)
         expect(v.length).toEqual(dataset.length);
       } catch (e) {
         done(e);
@@ -243,7 +303,74 @@ test('(10 pts) (scenario) all.mr:urlxtr', (done) => {
 });
 
 test('(10 pts) (scenario) all.mr:strmatch', (done) => {
-    done(new Error('Implement the map and reduce functions'));
+  const mapper = (key, value) => {
+    const output = [];
+    const regex = new RegExp('error', 'i'); 
+    
+    if (regex.test(String(value))) {
+      const obj = {};
+      obj['error'] = key;
+      output.push(obj);
+    }
+    // console.log("outut", output)
+    return output;
+  };
+
+  const reducer = (key, values) => {
+    const output = {};
+    output[key] = values;
+    // console.log("reducer output", output)
+    return output;
+  };
+
+  const dataset = [
+    {'log1': 'system started'},
+    {'log2': 'error: network timeout on port 8080'},
+    {'log3': 'warn: memory usage exceeding 80%'},
+    {'log4': 'error: connection refused'},
+  ];
+
+  const expected = [
+    {'error': ['log2', 'log4']}
+  ];
+
+  const doMapReduce = () => {
+    distribution.strmatch.store.get(null, (e, v) => {
+      try {
+        expect(v.length).toEqual(dataset.length);
+      } catch (err) {
+        done(err);
+      }
+
+      distribution.strmatch.mr.exec({keys: v, map: mapper, reduce: reducer}, (e, res) => {
+        try {
+          // Sort the arrays so the test doesn't fail due to network timing
+          if (res.length > 0 && res[0].error) {
+             res[0].error.sort();
+          }
+          expected[0].error.sort();
+          expect(res).toEqual(expect.arrayContaining(expected));
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+    });
+  };
+
+  let cntr = 0;
+
+  dataset.forEach((o) => {
+    const key = Object.keys(o)[0];
+    const value = o[key];
+    distribution.strmatch.store.put(value, key, (e, v) => {
+      cntr++;
+      if (cntr === dataset.length) {
+        doMapReduce();
+      }
+    });
+  });
+
 });
 
 test('(10 pts) (scenario) all.mr:ridx', (done) => {
@@ -314,7 +441,12 @@ beforeAll((done) => {
               const tfidfConfig = {gid: 'tfidf'};
               distribution.local.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
                 distribution.tfidf.groups.put(tfidfConfig, tfidfGroup, (e, v) => {
-                  done();
+                  const strmatchConfig = {gid: 'strmatch'};
+                  distribution.local.groups.put(strmatchConfig, strmatchGroup, (e, v) => {
+                    distribution.strmatch.groups.put(strmatchConfig, strmatchGroup, (e, v) => {
+                      done();
+                    });
+                  })
                 });
               });
             });
@@ -341,4 +473,3 @@ afterAll((done) => {
     });
   });
 });
-

@@ -11,7 +11,7 @@ const node = distribution.node;
 
 const cfg = node.config; 
 const sid = distribution.util.id.getSID(cfg);
-const group = { [sid]: cfg };
+const group = {[sid]: cfg };
 put("all", group, (e, v) => {});
 
 /**
@@ -59,6 +59,7 @@ function put(config, group, callback) {
       distribution[gid][service] = require(`../all/${service}.js`)(cfg)
     }
   }
+  distribution[gid].nodes = group;
   return callback(null, namestonodes.get(gid));
 }
 

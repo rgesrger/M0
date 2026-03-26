@@ -22,13 +22,13 @@
 function comm(config) {
   const context = {};
   context.gid = config.gid || 'all';
-
+  const distribution = globalThis.distribution;
   /**
    * @param {any[]} message
    * @param {Target} configuration
    * @param {Callback} callback
    */
-  const distribution = globalThis.distribution;
+  // calls local comm.send for each node in
   function send(message, configuration, callback) {
     let targetgid;
     if (configuration.gid){
@@ -36,6 +36,7 @@ function comm(config) {
     } else{
       targetgid = context.gid;
     }
+
     distribution.local.groups.get(targetgid, (e,v) => {
       const sids = Object.keys(v);
       const total = sids.length;
@@ -60,8 +61,10 @@ function comm(config) {
             results[sid] = v;
           }
           completed ++;
+
           if(completed === total) {
             const finalerr = Object.keys(errors).length > 0 ? errors : {};
+            // console.log("all comm finished errors", finalerr, "results", results);
             callback(finalerr, results);
           }
         })

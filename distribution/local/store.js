@@ -29,6 +29,7 @@ const util = globalThis.distribution.util;
  * @param {Callback} callback
  */
 function put(state, configuration, callback) {
+  // puts in path store/[NID_of_the_node]/[sanitized_GID+KEY]
   let key;
   let gid=null
   if (!configuration) {
@@ -57,6 +58,7 @@ function put(state, configuration, callback) {
       if (e) {
         return callback(new Error());
       } 
+      // console.log("stored", state, "configuration", configuration);
       return callback(null, util.deserialize(serializedstate));
     })
   })
@@ -82,7 +84,7 @@ function get(configuration, callback) {
   const dir = path.join(storedir, id.getNID(node), strcfg);
   fs.readFile(dir, 'utf-8', (e,v) => {
     if (e) {
-      return callback(new Error());
+      return callback(new Error("file not found"));
     }
     return callback(null, util.deserialize(v));
   })
@@ -127,7 +129,44 @@ function del(configuration, callback) {
  * @param {Callback} callback
  */
 function append(state, configuration, callback) {
-  return callback(new Error('store.append not implemented')); // You'll need to implement this method for the distributed processing milestone.
+  let key;
+  let gid = null;
+  if (typeof configuration == "string") {
+    key = configuration;
+  } else{
+    key = configuration.key;
+    gid = configuration.gid;
+  }
+  if (gid !== null && gid !== undefined) {
+    key = `${gid}${key}`
+  }
+  
+  const strkey = String(key + (gid || '')).replace(/[^a-zA-Z0-9]/g, '');
+  const dir = path.join(storedir, id.getNID(node));
+  const filepath = path.join(dir, strkey);
+
+  // ensure directory exists
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  try {
+    let list = [];
+    if (fs.existsSync(filepath)) {
+      const existingdata = fs.readFileSync(filepath, 'utf-8')
+      list = util.deserialize(existingdata);
+      if (!Array.isArray(list)) {
+        list = [list]; 
+      }
+    }
+    list.push(state);
+    const serializedData = util.serialize(list);
+    fs.writeFileSync(filepath, serializedData, 'utf-8');
+    return callback(null, list);
+  }
+  catch (e) {
+    return callback(new Error("append failed: " +e.message));
+  }
+
 }
 
 module.exports = {put, get, del, append};
