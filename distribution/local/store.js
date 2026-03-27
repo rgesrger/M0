@@ -182,7 +182,6 @@ function append(state, configuration, callback) {
     dir = path.join(dir, strGid);
   }
   const filepath = path.join(dir, strkey);
-  console.log("filepath for append", filepath);
   // ensure directory exists
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });

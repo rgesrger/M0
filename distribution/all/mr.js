@@ -171,7 +171,7 @@ function mr(config) {
               mappedarray.forEach((item) => {
                 const k = Object.keys(item)[0];
                 const v = item[k];
-                console.log("map append key:",k, "map append gid:", mrID, "map")
+                // console.log("map append key:",k, "map append gid:", mrID, "map")
                 distribution.local.store.append(v, {key: k, gid: mrID + 'map'}, (e) => {
                   savedEntries++;
                   if (savedEntries === mappedarray.length) {
@@ -211,9 +211,7 @@ function mr(config) {
               }
               return callback(e);
             }
-
             let filesCompleted = 0;
-
             if (files.length === 0) return notify();
             files.forEach((filename) => {
 
@@ -228,7 +226,6 @@ function mr(config) {
 
                 // append to node that the key belongs to
                 const remote = {service: "store", method: "append", node: remoteNode}
-                let valuesCompleted = 0;
 
                 // case for when v is empty. Needed because foreach wont run if v is empty
                 if (v.length === 0) {
@@ -236,18 +233,17 @@ function mr(config) {
                   if (filesCompleted === files.length) return notify();
                   return; 
                 }
-                v.forEach((value) =>{
-                  distribution.local.comm.send([value ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
-                    if (e) console.error("Shuffle push failed:", e);
-                    valuesCompleted ++;
-                    if (valuesCompleted === v.length) {
-                      filesCompleted++;
-                    }
-                    if (filesCompleted === files.length) {
-                      notify()
-                    }
-                  }); 
-                });
+
+                // console.log("value:", v, "config", {key: filename, gid: mrID + "shuffle"});
+                distribution.local.comm.send([v ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
+                  if (e) console.error("Shuffle push failed:", e);
+
+                  filesCompleted++;
+                  if (filesCompleted === files.length) {
+                    notify()
+                  }
+                }); 
+
 
               });
             });
@@ -300,7 +296,8 @@ function mr(config) {
                 console.log("filename", filename, "values array in reduce", valuesArray);
 
                 //  Apply the given reducer function
-                const reducedObject = reducer(filename, valuesArray); 
+                const flattenedValues = valuesArray.flat();
+                const reducedObject = reducer(filename, flattenedValues); 
                 localResults.push(reducedObject);
                 completed++;
                 if (completed === files.length) {
