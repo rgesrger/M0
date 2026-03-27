@@ -11,7 +11,7 @@ function serialize(object) {
   const type = typeof object;
   switch (type) {
     case 'string':
-      return `{"type":"string","value":${JSON.stringify(object)}}`;
+      return JSON.stringify({type: 'string', value: object});;
     case 'number':
     case 'boolean':
       return `{"type":"${type}","value":"${object.toString()}"}`;
@@ -32,6 +32,7 @@ function serialize(object) {
           cause: object.cause,
         };
         const errserialized = serialize(errobj);
+        
         return `{"type":"${objtype}","value":${errserialized}}`;
       }
       if (object instanceof Date) {
@@ -58,7 +59,6 @@ function deserialize(string) {
     throw new Error(`Invalid argument type: ${typeof string}.`);
   }
   // console.log('deserializeq', JSON.parse(string));
-
   let parsed = JSON.parse(string);
 
   // check if in right format

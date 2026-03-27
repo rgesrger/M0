@@ -83,7 +83,9 @@ function mr(config) {
         
         completedNodes++;
         if (currentPhase === "reduce") {
-          results.push(payload);
+          payload.forEach(element => {
+            results.push(element);
+          });
         }
         if (completedNodes === totalNodes) {
           // Reset counter 
@@ -118,7 +120,11 @@ function mr(config) {
           })
         }
         else if (currentPhase === "reduce") {
-          distribution.local.routes.remove(mrID, (e, v) => {
+          distribution.local.routes.rem(mrID, (e, v) => {
+            if (e) {
+              console.log(e);
+            }
+
             callback(null, results);
           });
         }
@@ -165,7 +171,8 @@ function mr(config) {
               mappedarray.forEach((item) => {
                 const k = Object.keys(item)[0];
                 const v = item[k];
-                distribution.local.store.put(v, {key: k, gid: mrID + '-map'}, (e) => {
+                console.log("map append key:",k, "map append gid:", mrID, "map")
+                distribution.local.store.append(v, {key: k, gid: mrID + 'map'}, (e) => {
                   savedEntries++;
                   if (savedEntries === mappedarray.length) {
                     processed++;
@@ -193,17 +200,11 @@ function mr(config) {
           /** @type {string} */ mrID,
           /** @type {Callback} */ callback,
       ) {
-        const fs = require('fs');
-        const path = require('path');
-        const node = distribution.node.config;
-        const nid = distribution.util.id.getNID(node);
-        const storedir = path.join(__dirname, '..', '..', 'store');
-        const dir = path.join(storedir, nid);
+
         distribution.local.routes.get(mrID, (e,v) => {
         const coord = v.coordinator;
           // scan directory for files for our map reduce
-
-          fs.readdir(dir, (e, files) => {
+          distribution.local.store.get({key: null, gid: mrID + 'map'},(e, files) => {
             if (e) {
               if (e.code === 'ENOENT') {
                 return notify();
@@ -211,43 +212,52 @@ function mr(config) {
               return callback(e);
             }
 
-            const prefix = String(mrID+'-map').replace(/[^a-zA-Z0-9]/g, '');
-            const relevantFiles = files.filter(f => f.startsWith(prefix));
-            if (relevantFiles.length === 0) {
-              notify();
-              return callback(null, {});
-            }
-            let completed = 0;
-            
-            //
-            relevantFiles.forEach((filename) => {
-              const actualKey = filename.substring(prefix.length);
-              distribution.local.store.get({key: actualKey, gid: mrID + '-map'}, (e,v) => {
-                if (e) return callback(e);
-                // remove gid prefix to get actual key
+            let filesCompleted = 0;
 
+            if (files.length === 0) return notify();
+            files.forEach((filename) => {
+
+              distribution.local.store.get({key: filename, gid: mrID + 'map'}, (e,v) => {
+                if (e) return callback(e);
+
+                // remove gid prefix to get actual key
                 const groupNodes = distribution[gid].nodes;
-                const remotesid = distribution.util.id.consistentHash(actualKey, Object.keys(groupNodes));
+                const kid = distribution.util.id.getID(filename);
+                const remotesid = distribution.util.id.consistentHash(kid, Object.keys(groupNodes));
                 const remoteNode = groupNodes[remotesid];
 
                 // append to node that the key belongs to
                 const remote = {service: "store", method: "append", node: remoteNode}
-                console.log("shuffle sent key", actualKey, "gid", mrID+"-shuffle")
-                distribution.local.comm.send([v ,{key: actualKey, gid: mrID + "-shuffle"}], remote, (e,v) => {
-                  completed ++;
-                  if (e) console.error("Shuffle push failed:", e);
-                  if (completed === relevantFiles.length) {
-                    notify()
-                  }
-                })
-              })
-            })
-          })
+                let valuesCompleted = 0;
+
+                // case for when v is empty. Needed because foreach wont run if v is empty
+                if (v.length === 0) {
+                  filesCompleted++;
+                  if (filesCompleted === files.length) return notify();
+                  return; 
+                }
+                v.forEach((value) =>{
+                  distribution.local.comm.send([value ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
+                    if (e) console.error("Shuffle push failed:", e);
+                    valuesCompleted ++;
+                    if (valuesCompleted === v.length) {
+                      filesCompleted++;
+                    }
+                    if (filesCompleted === files.length) {
+                      notify()
+                    }
+                  }); 
+                });
+
+              });
+            });
+          });
+
           function notify() {
               const remote = {node: coord, service: 'orchestrator' + mrID, method: 'notify'};
               distribution.local.comm.send(['shuffle-done'], remote, () => callback(null, 'Done'));
             }
-          })
+          });
         // Fetch the mapped values from the local store
         // Shuffle groups values by key (via store.append).
       },
@@ -257,52 +267,43 @@ function mr(config) {
           /** @type {Callback} */ callback,
       ) {
         const distribution = globalThis.distribution;
-        const fs = require('fs');
-        const path = require('path');
 
         // Get the Orchestrator config and the Reducer function
         distribution.local.routes.get(mrID, (e, routeConfig) => {
           if (e) return callback(e);
           const coord = routeConfig.coordinator;
           const reducer = routeConfig.reducer; 
-
-          const node = distribution.node.config;
-          const nid = distribution.util.id.getNID(node);
-          const storedir = path.join(__dirname, '..', '..', 'store');
-          const dir = path.join(storedir, nid);
-          fs.readdir(dir, (e, files) => {
+          const shuffleGid = mrID + 'shuffle';
+          distribution.local.store.get({key: null, gid: shuffleGid}, (e, files) => {
+            console.log("node:", distribution.node.config, "files in reduce", files, "errors", e);
             if (e) {
               if (e.code === 'ENOENT') return notify([]); // notify with empty array
               return callback(e);
             }
             
-            // Filter files by the Shuffle phase GID: mrID + '-shuffle'
-            const shuffleGid = mrID + '-shuffle';
-            const prefix = String(shuffleGid).replace(/[^a-zA-Z0-9]/g, '');
-            const relevantFiles = files.filter(f => f.startsWith(prefix));
-            if (relevantFiles.length === 0) return notify([]); 
+            // Filter files by the Shuffle phase GID: mrID + 'shuffle'
+            if (files.length === 0) return notify([]); 
 
             let completed = 0;
             const localResults = []; // Array to hold reduced objects
-
+            
             // Process each grouped file
-            relevantFiles.forEach((filename) => {
+            files.forEach((filename) => {
               // Extract the actual key 
-              const actualKey = filename.substring(prefix.length);
               // Get the array of values from the store
-              console.log("key", actualKey, "gid", shuffleGid);
-              distribution.local.store.get({key: actualKey, gid: shuffleGid}, (e, valuesArray) => {
+              
+              distribution.local.store.get({key: filename, gid: shuffleGid}, (e, valuesArray) => {
                 if (e) {
                   console.log("error in reduce", e)
                   return callback(e);
                 }
-                console.log("PEEN 4")
+                console.log("filename", filename, "values array in reduce", valuesArray);
+
                 //  Apply the given reducer function
-                const reducedObject = reducer(actualKey, valuesArray); 
+                const reducedObject = reducer(filename, valuesArray); 
                 localResults.push(reducedObject);
                 completed++;
-                if (completed === relevantFiles.length) {
-                  
+                if (completed === files.length) {
                   notify(localResults); 
                 }
               });

@@ -42,26 +42,40 @@ function put(state, configuration, callback) {
       gid = configuration.gid;
     }
   }
-  if (gid !== null && gid !== undefined) {
-    key = `${gid}${key}`
-  }
+
   const strkey = String(key).replace(/[^a-zA-Z0-9]/g, '');
   const nid = id.getNID(node);
-  const dir = path.join(storedir, nid);
+  
+  let dir = path.join(storedir, nid);
+  if (gid) {
+    const strGid = String(gid).replace(/[^a-zA-Z0-9]/g, '');
+    dir = path.join(dir, strGid);
+  }
   const serializedstate = util.serialize(state);
-  fs.mkdir(dir,{recursive: true}, (e)=>{
-    if (e) {
-      return callback(new Error());
-    }
+
+  // fs.mkdir(dir,{recursive: true}, (e)=>{
+  //   if (e) {
+  //     return callback(new Error());
+  //   }
+  //   const filepath = path.join(dir, strkey);
+  //   fs.writeFile(filepath, serializedstate, (e) =>{
+  //     if (e) {
+  //       return callback(new Error());
+  //     } 
+  //     // console.log("stored", state, "configuration", configuration);
+  //     console.log("put serialized:", serializedstate);
+  //     return callback(null, util.deserialize(serializedstate));
+  //   })
+  // })
+  try {
+    fs.mkdirSync(dir, { recursive: true });
     const filepath = path.join(dir, strkey);
-    fs.writeFile(filepath, serializedstate, (e) =>{
-      if (e) {
-        return callback(new Error());
-      } 
-      // console.log("stored", state, "configuration", configuration);
-      return callback(null, util.deserialize(serializedstate));
-    })
-  })
+    fs.writeFileSync(filepath, serializedstate);
+    
+    return callback(null, util.deserialize(serializedstate));
+  } catch (e) {
+    return callback(new Error("put failed: " + e.message));
+  }
 }
 
 /**
@@ -77,15 +91,34 @@ function get(configuration, callback) {
     key = configuration.key;
     gid = configuration.gid;
   }
-  if (gid !== null && gid !== undefined) {
-    key = `${gid}${key}`
-  }
+
+  // file path
   const strcfg= String(key).replace(/[^a-zA-Z0-9]/g, '');
-  const dir = path.join(storedir, id.getNID(node), strcfg);
+  let dir = path.join(storedir, id.getNID(node));
+  if (gid) {
+    const strGid = String(gid).replace(/[^a-zA-Z0-9]/g, '');
+    dir = path.join(dir, strGid);
+  }
+  // get all keys if key is null. we must do this before we join with key
+  if (key === null && gid) {
+    fs.readdir(dir, (e, files) => {
+      if (e) {
+        if (e.code === 'ENOENT') return callback(null, []); // Return empty array safely
+        return callback(e);
+      }
+      return callback(null, files);
+    });
+    return; 
+  }
+
+  // join path with key
+  dir = path.join(dir, strcfg);
   fs.readFile(dir, 'utf-8', (e,v) => {
     if (e) {
       return callback(new Error("file not found"));
     }
+    // console.log("value from get", v);
+    // console.log("deserialized value", util.deserialize(v));
     return callback(null, util.deserialize(v));
   })
 }
@@ -103,11 +136,14 @@ function del(configuration, callback) {
     key = configuration.key;
     gid = configuration.gid;
   }
-  if (gid !== null && gid !== undefined) {
-    key = `${gid}${key}`
-  }
+
   const strcfg= String(key).replace(/[^a-zA-Z0-9]/g, '');
-  const dir = path.join(storedir, id.getNID(node), strcfg);
+  let dir = path.join(storedir, id.getNID(node));
+  if (gid) {
+    const strGid = String(gid).replace(/[^a-zA-Z0-9]/g, '');
+    dir = path.join(dir, strGid);
+  }
+  dir = path.join(dir, strcfg);
   let todelete;
   fs.readFile(dir, 'utf-8', (e,v) => {
     if (e) {
@@ -129,6 +165,7 @@ function del(configuration, callback) {
  * @param {Callback} callback
  */
 function append(state, configuration, callback) {
+
   let key;
   let gid = null;
   if (typeof configuration == "string") {
@@ -137,14 +174,15 @@ function append(state, configuration, callback) {
     key = configuration.key;
     gid = configuration.gid;
   }
-  if (gid !== null && gid !== undefined) {
-    key = `${gid}${key}`
-  }
   
-  const strkey = String(key + (gid || '')).replace(/[^a-zA-Z0-9]/g, '');
-  const dir = path.join(storedir, id.getNID(node));
+  const strkey = String(key).replace(/[^a-zA-Z0-9]/g, '');
+  let dir = path.join(storedir, id.getNID(node));
+  if (gid) {
+    const strGid = String(gid).replace(/[^a-zA-Z0-9]/g, '');
+    dir = path.join(dir, strGid);
+  }
   const filepath = path.join(dir, strkey);
-
+  console.log("filepath for append", filepath);
   // ensure directory exists
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });

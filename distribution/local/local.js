@@ -39,7 +39,6 @@ const mem = require('./mem.js');
 
 const store = require('./store.js');
 
-const mr = require('./mr.js')
 
 module.exports = {
   status: status,
@@ -49,5 +48,4 @@ module.exports = {
   gossip: gossip,
   mem: mem,
   store: store,
-  mr:mr
 };
