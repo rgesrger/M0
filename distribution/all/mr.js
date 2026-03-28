@@ -104,6 +104,7 @@ function mr(config) {
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
              if (e && (e instanceof Error || Object.keys(e).length > 0)) {
               const errorMsg = typeof e === 'string' ? e : (e.message || JSON.stringify(e));
+              console.error("error in shuffle", errorMsg);
               return callback(new Error(`Shuffle Trigger Failed: ${errorMsg}`));
             }
           })
