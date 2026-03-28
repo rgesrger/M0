@@ -297,7 +297,9 @@ function mr(config) {
                   return callback(e);
                 }
                 console.log("filename", filename, "values array in reduce", valuesArray);
-
+                const util = require('util');
+                console.log("filname", util.inspect(filename, {depth: null, colors: true }));
+                console.log("values array in reduce", util.inspect(valuesArray, {depth: null, colors: true }));
                 //  Apply the given reducer function
                 const flattenedValues = valuesArray.flat();
                 const reducedObject = reducer(filename, flattenedValues); 
