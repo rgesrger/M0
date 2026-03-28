@@ -105,9 +105,9 @@ function mr(config) {
           console.log("start shuffle");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
              if (e && (e instanceof Error || Object.keys(e).length > 0)) {
-              const errorMsg = typeof e === 'string' ? e : (e.message || JSON.stringify(e));
-              console.error("error in shuffle", errorMsg);
-              return callback(new Error(`Shuffle Trigger Failed: ${errorMsg}`));
+              const util = require("util");
+              throw new Error(`shuffle start phase error: ${util.inspect(e, { depth: null })}`);
+              return callback(e);
             }
           })
         }
@@ -204,7 +204,6 @@ function mr(config) {
           /** @type {string} */ mrID,
           /** @type {Callback} */ callback,
       ) {
-
         distribution.local.routes.get(mrID, (e,v) => {
         const coord = v.coordinator;
           // scan directory for files for our map reduce
@@ -234,19 +233,18 @@ function mr(config) {
                 // console.log("value:", v, "config", {key: filename, gid: mrID + "shuffle"});
                 distribution.local.comm.send([v ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
                   filesCompleted++;
-                  if (e) console.error("Shuffle push failed:", e);
+                  if (e) {console.error("Shuffle push failed:", e);}
 
                   if (filesCompleted === files.length) {
                     notify()
                   }
                 }); 
-
-
               });
             });
           });
 
-          function notify() {
+          function notify(e=null) {
+              const payload = e ? { error: e.message || e } : ['shuffle-done'];
               const remote = {node: coord, service: 'orchestrator' + mrID, method: 'notify'};
               distribution.local.comm.send(['shuffle-done'], remote, () => callback(null, 'Done'));
             }
@@ -290,10 +288,6 @@ function mr(config) {
                   console.log("error in reduce", e)
                   return callback(e);
                 }
-                console.log("filename", filename, "values array in reduce", valuesArray);
-                const util = require('util');
-                console.log("filname", util.inspect(filename, {depth: null, colors: true }));
-                console.log("values array in reduce", util.inspect(valuesArray, {depth: null, colors: true }));
                 //  Apply the given reducer function
                 const flattenedValues = valuesArray.flat();
                 const reducedObject = reducer(filename, flattenedValues); 
