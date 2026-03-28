@@ -103,8 +103,8 @@ function mr(config) {
           console.log("start shuffle");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
              if (e && (e instanceof Error || Object.keys(e).length > 0)) {
-              console.log("error in shuffle", e)
-              return callback(e);
+              const errorMsg = typeof e === 'string' ? e : (e.message || JSON.stringify(e));
+              return callback(new Error(`Shuffle Trigger Failed: ${errorMsg}`));
             }
           })
         }
