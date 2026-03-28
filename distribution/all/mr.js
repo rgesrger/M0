@@ -80,6 +80,8 @@ function mr(config) {
     // service that other nodes will call to talk to main orchestrator
     const orchestratorService = {
       notify: function(payload, callback) {
+        const util = require('util');
+        console.log("notify", util.inspect(payload, {depth: null, colors: true }));
         
         completedNodes++;
         if (currentPhase === "reduce") {
@@ -122,13 +124,11 @@ function mr(config) {
         }
         
         else if (currentPhase === "reduce") {
-          const util = require('util');
-          
           distribution.local.routes.rem(mrID, (e, v) => {
             if (e) {
               console.log(e);
             }
-            console.log("final reduce results", util.inspect(results, {depth: null, colors: true }));
+            // console.log("final reduce results", util.inspect(results, {depth: null, colors: true }));
             callback(null, results);
           });
         }
@@ -231,18 +231,11 @@ function mr(config) {
                 // append to node that the key belongs to
                 const remote = {service: "store", method: "append", node: remoteNode}
 
-                // case for when v is empty. Needed because foreach wont run if v is empty
-                if (v.length === 0) {
-                  filesCompleted++;
-                  if (filesCompleted === files.length) return notify();
-                  return; 
-                }
-
                 // console.log("value:", v, "config", {key: filename, gid: mrID + "shuffle"});
                 distribution.local.comm.send([v ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
+                  filesCompleted++;
                   if (e) console.error("Shuffle push failed:", e);
 
-                  filesCompleted++;
                   if (filesCompleted === files.length) {
                     notify()
                   }
