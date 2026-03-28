@@ -119,12 +119,15 @@ function mr(config) {
             }
           })
         }
+        
         else if (currentPhase === "reduce") {
+          const util = require('util');
+          
           distribution.local.routes.rem(mrID, (e, v) => {
             if (e) {
               console.log(e);
             }
-
+            console.log("final reduce results", util.inspect(results, {depth: null, colors: true }));
             callback(null, results);
           });
         }
