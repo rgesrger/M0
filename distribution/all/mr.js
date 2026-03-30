@@ -56,7 +56,6 @@ function mr(config) {
    * @returns {void}
    */
   function exec(configuration, callback) {
-
     // fs.writeFileSync("/usr/src/app/logs/beforemap", "context.gid"+context.gid);
 
     const workerGroup = context.gid;
@@ -72,28 +71,27 @@ function mr(config) {
 
       Note: Comments inside the stencil describe a possible implementation---you should feel free to make low- and mid-level adjustments as needed.
     */
-    
     let completedNodes = 0;
     
     const totalNodes = Object.keys(distribution[workerGroup].nodes).length;
     let currentPhase = "map";
-    let results = []
+    let results = [];
     // service that other nodes will call to talk to main orchestrator
     const orchestratorService = {
       notify: function(payload, callback) {
         const util = require('util');
         console.log("notify", util.inspect(payload, {depth: null, colors: true }));
-        
+
         completedNodes++;
         if (currentPhase === "reduce") {
-          payload.forEach(element => {
+          payload.forEach((element) => {
             results.push(element);
           });
         }
         if (completedNodes === totalNodes) {
-          // Reset counter 
-          completedNodes = 0; 
-          this.advanceToNextPhase(); 
+          // Reset counter
+          completedNodes = 0;
+          this.advanceToNextPhase();
         }
         // acknowledge to worker
         callback(null, 'OK');
@@ -106,14 +104,11 @@ function mr(config) {
           const mapcfg = {service: mrID, method: "shuffle"}
           console.log("start shuffle");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
-             if (e && (e instanceof Error || Object.keys(e).length > 0)) {
-                const util = require("util");
-                throw new Error(`shuffle start phase error: ${util.inspect(e, { depth: null })}`);
-                return callback(e);
+            if (e && (e instanceof Error || Object.keys(e).length > 0)) {
+              return callback(e);
             }
-          })
-        }
-        else if (currentPhase === "shuffle") {
+          });
+        } else if (currentPhase === "shuffle") {
           currentPhase = "reduce";
           const mapcfg = {service: mrID, method: "reduce"}
           console.log("start reduce");
@@ -122,10 +117,8 @@ function mr(config) {
               console.log("errors starting reduce", e);
               return callback(e);
             }
-          })
-        }
-        
-        else if (currentPhase === "reduce") {
+          });
+        } else if (currentPhase === "reduce") {
           distribution.local.routes.rem(mrID, (e, v) => {
             if (e) {
               console.log(e);
@@ -196,7 +189,10 @@ function mr(config) {
           }
           function notify() {
             const remote = {node: coord, service: 'orchestrator' + mrID, method: 'notify'};
-            distribution.local.comm.send(['map-done'], remote, () => callback(null, 'Done'));
+            distribution.local.comm.send(['map-done'], remote, (e) => {
+              console.log("error", e);
+              callback(null, 'Done');
+            });
           }
         });
         // Map should read the node's local keys under the mrGid gid and write to store under gid `${mrID}_map`.
