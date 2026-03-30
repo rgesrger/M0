@@ -79,7 +79,7 @@ function mr(config) {
     // service that other nodes will call to talk to main orchestrator
     const orchestratorService = {
       notify: function(payload, callback) {
-        console.log("notify");
+        console.log("notify on orchestrator");
 
         completedNodes++;
         if (currentPhase === "reduce") {
@@ -187,7 +187,7 @@ function mr(config) {
             }
           }
           function notify() {
-            console.log("run notify");
+            console.log("run notify. coord.ip:", coord.ip, "coord.port", coord.port);
             const remote = {node: coord, service: 'orchestrator' + mrID, method: 'notify'};
             distribution.local.comm.send(['map-done'], remote, (e) => {
               callback(null, 'Done');
