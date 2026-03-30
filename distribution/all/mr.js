@@ -183,8 +183,8 @@ function mr(config) {
             });
           });
           function checkDone() {
-            console.log("checkdone");
             if (processed === keystomap.length) {
+              console.log("finished map");
               notify();
             }
           }
