@@ -79,7 +79,7 @@ function mr(config) {
     // service that other nodes will call to talk to main orchestrator
     const orchestratorService = {
       notify: function(payload, callback) {
-        console.log("notify", currentPhase);
+        console.log("notify");
 
         completedNodes++;
         if (currentPhase === "reduce") {
