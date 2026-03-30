@@ -56,6 +56,7 @@ function mr(config) {
    * @returns {void}
    */
   function exec(configuration, callback) {
+
     // fs.writeFileSync("/usr/src/app/logs/beforemap", "context.gid"+context.gid);
 
     const workerGroup = context.gid;
@@ -99,15 +100,16 @@ function mr(config) {
       },
 
       advanceToNextPhase: function() {
+        console.log(`PHASE TRANSITION: ${currentPhase} -> ???`);
         if (currentPhase === "map") {
           currentPhase = "shuffle"
           const mapcfg = {service: mrID, method: "shuffle"}
           console.log("start shuffle");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
              if (e && (e instanceof Error || Object.keys(e).length > 0)) {
-              const util = require("util");
-              throw new Error(`shuffle start phase error: ${util.inspect(e, { depth: null })}`);
-              return callback(e);
+                const util = require("util");
+                throw new Error(`shuffle start phase error: ${util.inspect(e, { depth: null })}`);
+                return callback(e);
             }
           })
         }
@@ -145,6 +147,7 @@ function mr(config) {
           /** @type {string} */ mrID,
           /** @type {Callback} */ callback,
       ) {
+        console.log("start map")
         const distribution = globalThis.distribution;
         distribution.local.routes.get(mrID, (e,v) => {
           const mapper = v.mapper;
@@ -204,10 +207,12 @@ function mr(config) {
           /** @type {string} */ mrID,
           /** @type {Callback} */ callback,
       ) {
+        const distribution = globalThis.distribution;
         distribution.local.routes.get(mrID, (e,v) => {
         const coord = v.coordinator;
           // scan directory for files for our map reduce
           distribution.local.store.get({key: null, gid: mrID + 'map'},(e, files) => {
+            
             if (e) {
               if (e.code === 'ENOENT') {
                 return notify();
@@ -217,28 +222,37 @@ function mr(config) {
             let filesCompleted = 0;
             if (files.length === 0) return notify();
             files.forEach((filename) => {
-
+              
               distribution.local.store.get({key: filename, gid: mrID + 'map'}, (e,v) => {
                 if (e) return callback(e);
 
                 // remove gid prefix to get actual key
-                const groupNodes = distribution[gid].nodes;
-                const kid = distribution.util.id.getID(filename);
-                const remotesid = distribution.util.id.consistentHash(kid, Object.keys(groupNodes));
-                const remoteNode = groupNodes[remotesid];
+                distribution.local.groups.get(gid, (e, groupNodes) => {
+                  if (e) return callback(e);
 
-                // append to node that the key belongs to
-                const remote = {service: "store", method: "append", node: remoteNode}
-
-                // console.log("value:", v, "config", {key: filename, gid: mrID + "shuffle"});
-                distribution.local.comm.send([v ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
-                  filesCompleted++;
-                  if (e) {console.error("Shuffle push failed:", e);}
-
-                  if (filesCompleted === files.length) {
-                    notify()
-                  }
-                }); 
+                  const kid = distribution.util.id.getID(filename);
+                  
+                  // callback(new Error(
+                  //   `kid value: ${JSON.stringify(kid)}\n` +
+                  //   `kid type: ${typeof kid}\n` +
+                  //   `groupNodes object: ${JSON.stringify(groupNodes,null, 2)}`
+                  // ));
+                  const remotesid = distribution.util.id.consistentHash(kid, Object.keys(groupNodes));
+                  const remoteNode = groupNodes[remotesid];
+                  
+                  // append to node that the key belongs to
+                  const remote = {service: "store", method: "append", node: remoteNode}
+                  // callback(new Error(`before communications during shuffle`))
+                  // console.log("value:", v, "config", {key: filename, gid: mrID + "shuffle"});
+                  distribution.local.comm.send([v ,{key: filename, gid: mrID + "shuffle"}], remote, (e,v) => {
+                    
+                    filesCompleted++;
+                    if (e) {console.error("Shuffle push failed:", e);}
+                    if (filesCompleted === files.length) {
+                      notify()
+                    }
+                  }); 
+                });
               });
             });
           });
@@ -258,7 +272,6 @@ function mr(config) {
           /** @type {Callback} */ callback,
       ) {
         const distribution = globalThis.distribution;
-
         // Get the Orchestrator config and the Reducer function
         distribution.local.routes.get(mrID, (e, routeConfig) => {
           if (e) return callback(e);
@@ -312,15 +325,15 @@ function mr(config) {
     distribution.local.routes.put(orchestratorService, "orchestrator"+mrID, (e,v)=>{
       if (e) return callback(e);
       distribution.local.groups.get(workerGroup, (e, nodes) => {
-
       if (e) return callback(e);
       // give everybody in the workerGroup knowledge of these nodes. This is necessary for distributing
       // work in shuffle
         distribution.local.groups.put({gid: mrGid}, nodes, (e, v) => {
         if (e) return callback(e);
 
-          distribution[workerGroup].groups.put({gid: mrGid}, nodes, (e, v) => {
+          distribution[mrGid].groups.put({gid: mrGid}, nodes, (e, v) => {
             if (e && (e instanceof Error || Object.keys(e).length > 0)) {
+              console.log(e);
               return callback(e);
             }
             const sendcfg = {service:"routes", method:"put"};
@@ -331,6 +344,7 @@ function mr(config) {
               const mapcfg = {service: mrID, method: "map"}
               distribution[mrGid].comm.send([workerGroup, mrID], mapcfg, (e,v) =>{
                 if (e && (e instanceof Error || Object.keys(e).length > 0)) {
+                  console.log(e);
                   return callback(e);
                 }
               })
