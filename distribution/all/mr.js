@@ -190,6 +190,7 @@ function mr(config) {
             console.log("run notify. coord.ip:", coord.ip, "coord.port", coord.port);
             const remote = {node: coord, service: 'orchestrator' + mrID, method: 'notify'};
             distribution.local.comm.send(['map-done'], remote, (e) => {
+              console.log("errors during notify", e);
               callback(null, 'Done');
             });
           }
