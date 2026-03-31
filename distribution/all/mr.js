@@ -79,7 +79,6 @@ function mr(config) {
     // service that other nodes will call to talk to main orchestrator
     const orchestratorService = {
       notify: function(payload, callback) {
-        console.log("notify on orchestrator");
 
         completedNodes++;
         if (currentPhase === "reduce") {
@@ -97,11 +96,9 @@ function mr(config) {
       },
 
       advanceToNextPhase: function() {
-        console.log(`PHASE TRANSITION: ${currentPhase} -> ???`);
         if (currentPhase === "map") {
           currentPhase = "shuffle"
           const mapcfg = {service: mrID, method: "shuffle"}
-          console.log("start shuffle");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
             if (e && (e instanceof Error || Object.keys(e).length > 0)) {
               return callback(e);
@@ -110,7 +107,6 @@ function mr(config) {
         } else if (currentPhase === "shuffle") {
           currentPhase = "reduce";
           const mapcfg = {service: mrID, method: "reduce"}
-          console.log("start reduce");
           distribution[mrGid].comm.send([mrGid, mrID], mapcfg, (e,v) =>{
             if (e && (e instanceof Error || Object.keys(e).length > 0)){
               console.log("errors starting reduce", e);
@@ -289,9 +285,7 @@ function mr(config) {
             
             // Process each grouped file
             files.forEach((filename) => {
-              // Extract the actual key 
               // Get the array of values from the store
-              
               distribution.local.store.get({key: filename, gid: shuffleGid}, (e, valuesArray) => {
                 if (e) {
                   console.log("error in reduce", e)
