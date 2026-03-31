@@ -112,16 +112,16 @@ distribution.node.start((e) => {
     // generated for itself. If you started the node with --ip 0.0.0.0, 
     // you must calculate the SID using 0.0.0.0.
     
-    const n1_sid = id.getSID({ip: '0.0.0.0', port: 8001});
-    const n2_sid = id.getSID({ip: '0.0.0.0', port: 8001});
-    const n3_sid = id.getSID({ip: '0.0.0.0', port: 8001});
+    const n1_sid = id.getSID({ip: '3.23.126.152', port: 8001});
+    const n2_sid = id.getSID({ip: '18.217.226.121', port: 8001});
+    const n3_sid = id.getSID({ip: '18.222.153.26', port: 8001});
 
-    // The value is where the data is actually sent (Public IPs)
+    // The value is where the data is actually sent 
     groupDict[n1_sid] = {ip: '3.23.126.152', port: 8001};
     groupDict[n2_sid] = {ip: '18.217.226.121', port: 8001};
     groupDict[n3_sid] = {ip: '18.222.153.26', port: 8001};
 
-    const config = { gid: GID, hash: id.consistentHash };
+    const config = {gid: GID, hash: id.consistentHash };
 
     // 1. Map the group locally so your client knows where the nodes are
     distribution.local.groups.put(config, groupDict, (e) => {
