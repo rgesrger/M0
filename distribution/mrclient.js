@@ -5,7 +5,7 @@ const distribution = globalThis.distribution;
 const id = distribution.util.id;
 
 // Basic settings for the run
-const TOTAL_DOCS = 1;
+const TOTAL_DOCS = 1000;
 const GID = 'awsMrGroup';
 
 // AWS Ips
@@ -24,7 +24,7 @@ const dataset = [];
 const words = ["cloud", "distributed", "systems", "aws", "mapreduce", "node"];
 
 for (let i = 0; i < TOTAL_DOCS; i++) {
-  let sentence = Array.from({length: 10 }, () => words[Math.floor(Math.random() * words.length)]).join(' ');
+  let sentence = Array.from({length: 10}, () => words[Math.floor(Math.random() * words.length)]).join(' ');
   dataset.push({ key: `doc-${i}`, value: sentence });
 }
 
@@ -46,7 +46,7 @@ function sendData() {
   const start = performance.now();
   let completed = 0;
   let started = 0;
-  const CONCURRENCY = 1; // Number of simultaneous requests
+  const CONCURRENCY = 30; // Number of simultaneous requests
 
   function launch() {
     // Fill the "window" up to our concurrency limit
