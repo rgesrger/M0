@@ -91,10 +91,21 @@ function runMapReduce() {
 }
 
 function showResults(results) {
-  console.log("\n--- Results ---");
-  console.log(`Put Throughput: ${(TOTAL_DOCS / (putTime / 1000)).toFixed(2)} docs/sec`);
-  console.log(`MR Total Time: ${mrTime.toFixed(2)} ms`);
-  console.log("Sample output:", results.slice(0, 3));
+  // Calculate MapReduce Throughput (Docs per second)
+  const mrThroughput = TOTAL_DOCS / (mrTime / 1000);
+  
+  // Calculate MapReduce Average Latency per Document
+  const mrAvgLatency = mrTime / TOTAL_DOCS;
+
+  console.log("\n BENCHMARK RESULTS ");
+
+  
+  console.log(`\n[Phase 2: MAPREDUCE]`);
+  console.log(`Throughput: ${mrThroughput.toFixed(2)} docs/sec`);
+  console.log(`Avg Latency: ${mrAvgLatency.toFixed(2)} ms/doc`);
+  console.log(`Total Turnaround Time: ${mrTime.toFixed(2)} ms`);
+  
+  console.log("\ output:", results.slice(0, 3));
   process.exit(0);
 }
 
