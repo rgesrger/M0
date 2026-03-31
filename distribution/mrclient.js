@@ -5,7 +5,7 @@ const distribution = globalThis.distribution;
 const id = distribution.util.id;
 
 // Basic settings for the run
-const TOTAL_DOCS = 1;
+const TOTAL_DOCS = 100;
 const GID = 'awsMrGroup';
 
 // AWS Ips
@@ -45,7 +45,7 @@ function sendData() {
   const globalStart = performance.now(); // Stopwatch for Throughput
   let completed = 0;
   let started = 0;
-  const CONCURRENCY = 5; 
+  const CONCURRENCY = 10; 
 
   function launch() {
     while (started < dataset.length && (started - completed) < CONCURRENCY) {
