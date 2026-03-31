@@ -107,27 +107,23 @@ distribution.node.start((e) => {
     }
 
     const groupDict = {};
-
-    // IMPORTANT: The key in groupDict MUST be the SID the remote node 
-    // generated for itself. If you started the node with --ip 0.0.0.0, 
-    // you must calculate the SID using 0.0.0.0.
     
-    const n1_sid = id.getSID({ip: '3.23.126.152', port: 8001});
-    const n2_sid = id.getSID({ip: '18.217.226.121', port: 8001});
-    const n3_sid = id.getSID({ip: '18.222.153.26', port: 8001});
+    const n1_sid = id.getSID({ip: '172.31.45.36', port: 8001});
+    const n2_sid = id.getSID({ip: '172.31.35.75', port: 8001});
+    const n3_sid = id.getSID({ip: '172.31.43.115', port: 8001});
 
     // The value is where the data is actually sent 
-    groupDict[n1_sid] = {ip: '3.23.126.152', port: 8001};
-    groupDict[n2_sid] = {ip: '18.217.226.121', port: 8001};
-    groupDict[n3_sid] = {ip: '18.222.153.26', port: 8001};
+    groupDict[n1_sid] = {ip: '172.31.45.36', port: 8001};
+    groupDict[n2_sid] = {ip: '172.31.35.75', port: 8001};
+    groupDict[n3_sid] = {ip: '172.31.43.115', port: 8001};
 
     const config = {gid: GID, hash: id.consistentHash };
 
-    // 1. Map the group locally so your client knows where the nodes are
+    // Map the group locally so your client knows where the nodes are
     distribution.local.groups.put(config, groupDict, (e) => {
         if (e) return console.error("Local group error:", e);
 
-        // 2. Push the group config to the remote nodes so they recognize the GID
+        //Push the group config to the remote nodes so they recognize the GID
         distribution[GID].groups.put(config, groupDict, (e) => {
             if (e && Object.keys(e).length > 0) return console.error("Remote group error:", e);
             
