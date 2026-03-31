@@ -5,7 +5,7 @@ const distribution = globalThis.distribution;
 const id = distribution.util.id;
 
 // Basic settings for the run
-const TOTAL_DOCS = 100;
+const TOTAL_DOCS = 1;
 const GID = 'awsMrGroup';
 
 // AWS Ips
@@ -37,56 +37,40 @@ const reducer = (key, values) => {
   return { [key]: values.reduce((a, b) => a + parseInt(b, 10), 0) };
 };
 
-let putTime = 0;   // Global time for Throughput
-let totalPutLatency = 0; // Sum of individual times for Latency
+let putTime = 0;
+let mrTime = 0;
 
+// This seeds the data across the cluster before the MR starts
 function sendData() {
   console.log("Distributing data in parallel batches...");
-  const globalStart = performance.now(); // Stopwatch for Throughput
+  const start = performance.now();
   let completed = 0;
   let started = 0;
-  const CONCURRENCY = 10; 
+  const CONCURRENCY = 1; // Number of simultaneous requests
 
   function launch() {
+    // Fill the "window" up to our concurrency limit
     while (started < dataset.length && (started - completed) < CONCURRENCY) {
       const item = dataset[started];
       const index = started;
       started++;
 
-      // Start the individual stopwatch for THIS specific request
-      const requestStart = performance.now(); 
-
       distribution[GID].store.put(item.value, item.key, (e) => {
-        // Stop the individual stopwatch
-        const requestEnd = performance.now();
-        const itemLatency = requestEnd - requestStart;
-        totalPutLatency += itemLatency; 
-
         if (e) console.error(`Error on item ${index}:`, e);
         
         completed++;
         if (completed === TOTAL_DOCS) {
-          // Stop the global stopwatch
-          putTime = performance.now() - globalStart;
-          
-          const throughput = TOTAL_DOCS / (putTime / 1000);
-          const avgLatency = totalPutLatency / TOTAL_DOCS;
-          
-          console.log(`\n--- PUT RESULTS ---`);
-          console.log(`Throughput: ${throughput.toFixed(2)} docs/sec`);
-          console.log(`True Avg Latency: ${avgLatency.toFixed(2)} ms/doc`);
-          
+          putTime = performance.now() - start;
+          console.log(`Finished: ${TOTAL_DOCS} docs in ${(putTime/1000).toFixed(2)}s`);
           runMapReduce();
         } else {
-          launch(); 
+          launch(); // Launch the next one as soon as one finishes
         }
       });
     }
   }
-
   launch();
 }
-
 // Triggers the actual MapReduce execution
 function runMapReduce() {
   
@@ -114,6 +98,7 @@ function showResults(results) {
   process.exit(0);
 }
 
+console.log("start");
 // Start the client and connect to the already-running remote nodes
 distribution.node.start((e) => {
     if (e) {
